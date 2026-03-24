@@ -1,6 +1,6 @@
 version: v2
 # Удаляет сгенеренное ранее, то что находится в out каждого плагина.
-clean: true
+#clean: true
 
 plugins:
   - local: ../bin/protoc-gen-go
@@ -20,3 +20,9 @@ plugins:
     opt:
       - paths=source_relative
       - lang=go
+  - local: ../bin/protoc-gen-openapiv2
+    out: ../api
+    opt:
+      - allow_merge=true
+      - merge_file_name=inventory.json
+      - json_names_for_fields=false

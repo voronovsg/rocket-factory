@@ -369,7 +369,6 @@ func main() {
 
 		mux := runtime.NewServeMux()
 		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-
 		err = inventoryV1.RegisterInventoryServiceHandlerFromEndpoint(
 			ctx,
 			mux,
@@ -381,13 +380,25 @@ func main() {
 			return
 		}
 
+		fileServer := http.FileServer(http.Dir("api"))
+		httpMux := http.NewServeMux()
+		httpMux.Handle("/api/", mux)
+		httpMux.Handle("/swagger-ui.html", fileServer)
+		httpMux.Handle("/inventory.swagger.json", fileServer)
+		httpMux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				http.Redirect(w, r, "/swagger-ui.html", http.StatusMovedPermanently)
+				return
+			}
+			fileServer.ServeHTTP(w, r)
+		}))
+
 		gwServer = &http.Server{
 			Addr:              fmt.Sprintf(httpAddr),
-			Handler:           mux,
+			Handler:           httpMux,
 			ReadHeaderTimeout: 10 * time.Second,
 		}
-
-		log.Printf("🌐 HTTP server with gRPC-Gateway listening on %v\n", httpAddr)
+		log.Printf("🌐 HTTP server with gRPC-Gateway and Swagger UI listening on %v\n", httpAddr)
 		err = gwServer.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("Failed to serve HTTP: %v\n", err)
