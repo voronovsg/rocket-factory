@@ -17,6 +17,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/validate"
 	inventoryV1 "github.com/voronovsg/rocket-factory/inventory/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -338,13 +339,10 @@ func main() {
 		log.Printf("failed to listen: %v\n", err)
 		return
 	}
-	defer func() {
-		if cerr := lis.Close(); cerr != nil {
-			log.Printf("failed to close listener: %v\n", cerr)
-		}
-	}()
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(validate.UnaryValidateInterceptor()),
+	)
 	reflection.Register(s)
 
 	service := &InventoryService{
@@ -391,7 +389,7 @@ func main() {
 
 		log.Printf("🌐 HTTP server with gRPC-Gateway listening on %v\n", httpAddr)
 		err = gwServer.ListenAndServe()
-		if err != nil && errors.Is(err, http.ErrServerClosed) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("Failed to serve HTTP: %v\n", err)
 			return
 		}

@@ -1,6 +1,4 @@
 version: v1
-#deps:
-#  - buf.build/googleapis/googleapis
 lint:
   use:
     - STANDARD
@@ -8,6 +6,7 @@ lint:
     - COMMENT_MESSAGE
   ignore:
     - google
+    - validate
   except:
     - RPC_RESPONSE_STANDARD_NAME
     - RPC_REQUEST_RESPONSE_UNIQUE

@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.14.1
+	github.com/envoyproxy/protoc-gen-validate v1.3.3
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57

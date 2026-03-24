@@ -4,6 +4,7 @@ package inventory.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/voronovsg/rocket-factory/inventory/proto/inventory/v1;inventory_v1";
 
@@ -27,12 +28,12 @@ service InventoryService {
 
 // Запрос для метода GetPart
 message GetPartRequest {
-  string uuid = 1; // Идентификатор запрашиваемой детали
+  string uuid = 1 [(validate.rules).string.uuid = true]; // Идентификатор запрашиваемой детали
 }
 
 // Ответ для метода GetPart
 message GetPartResponse {
-  Part part = 1; // Информация о найденной детали
+  Part part = 1 [(validate.rules).message.required = true]; // Информация о найденной детали
 }
 
 // Запрос для метода ListParts
@@ -47,18 +48,21 @@ message ListPartsResponse {
 
 // Структура, описывающая деталь
 message Part {
-  string uuid = 1; // Уникальный идентификатор детали
-  string name = 2; // Название детали
-  string description = 3; // Описание детали
-  double price = 4; // Цена за единицу
-  int64 stock_quantity = 5; // Количество на складе
-  Category category = 6; // Категория
-  Dimensions dimensions = 7; // Размеры детали
-  Manufacturer manufacturer = 8; // Информация о производителе
-  repeated string tags = 9; // Теги для быстрого поиска
-  map<string, Value> metadata = 10; // Гибкие метаданные
-  google.protobuf.Timestamp created_at = 11; // Дата создания
-  google.protobuf.Timestamp updated_at = 12; // Дата обновления
+  string uuid = 1 [(validate.rules).string.uuid = true]; // Уникальный идентификатор детали
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 255}]; // Название детали
+  string description = 3 [(validate.rules).string.max_len = 2000]; // Описание детали
+  double price = 4 [(validate.rules).double.gte = 0]; // Цена за единицу
+  int64 stock_quantity = 5 [(validate.rules).int64.gte = 0]; // Количество на складе
+  Category category = 6 [(validate.rules).enum = {defined_only: true, not_in: [0]}]; // Категория
+  Dimensions dimensions = 7 [(validate.rules).message.required = true]; // Размеры детали
+  Manufacturer manufacturer = 8 [(validate.rules).message.required = true]; // Информация о производителе
+  repeated string tags = 9 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 64}}
+  }]; // Теги для быстрого поиска
+  map<string, Value> metadata = 10 [(validate.rules).map.no_sparse = true]; // Гибкие метаданные
+  google.protobuf.Timestamp created_at = 11 [(validate.rules).timestamp.required = true]; // Дата создания
+  google.protobuf.Timestamp updated_at = 12 [(validate.rules).timestamp.required = true]; // Дата обновления
 }
 
 // Категории деталей
@@ -72,22 +76,23 @@ enum Category {
 
 // Dimensions представляет размеры детали
 message Dimensions {
-  double length = 1; // Длина в см
-  double width = 2; // Ширина в см
-  double height = 3; // Высота в см
-  double weight = 4; // Вес в кг
+  double length = 1 [(validate.rules).double.gt = 0]; // Длина в см
+  double width = 2 [(validate.rules).double.gt = 0]; // Ширина в см
+  double height = 3 [(validate.rules).double.gt = 0]; // Высота в см
+  double weight = 4 [(validate.rules).double.gt = 0]; // Вес в кг
 }
 
 // Структура для хранения информации о производителе детали
 message Manufacturer {
-  string name = 1; // Название производителя
-  string country = 2; // Страна производства
-  string website = 3; // Сайт производителя
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 255}]; // Название производителя
+  string country = 2 [(validate.rules).string = {min_len: 1, max_len: 128}]; // Страна производства
+  string website = 3 [(validate.rules).string = {uri: true, ignore_empty: true}]; // Сайт производителя
 }
 
 // Структура для хранения значения метаданных детали
 message Value {
   oneof kind {
+    option (validate.required) = true;
     string string_value = 1; // Строковое значение
     int64 int64_value = 2; // Целочисленное значение
     double double_value = 3; // Дробное значение
@@ -97,9 +102,24 @@ message Value {
 
 // Фильтр для поиска деталей
 message PartsFilter {
-  repeated string uuids = 1; // Список UUID'ов деталей
-  repeated string names = 2; // Список имён деталей
-  repeated Category categories = 3; // Список категорий деталей
-  repeated string manufacturer_countries = 4; // Страны производителей
-  repeated string tags = 5; // Теги для поиска
+  repeated string uuids = 1 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {uuid: true}}
+  }]; // Список UUID'ов деталей
+  repeated string names = 2 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 255}}
+  }]; // Список имён деталей
+  repeated Category categories = 3 [(validate.rules).repeated = {
+    unique: true,
+    items: {enum: {defined_only: true, not_in: [0]}}
+  }]; // Список категорий деталей
+  repeated string manufacturer_countries = 4 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 128}}
+  }]; // Страны производителей
+  repeated string tags = 5 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 64}}
+  }]; // Теги для поиска
 }
