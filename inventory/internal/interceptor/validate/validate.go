@@ -13,6 +13,10 @@ type validatable interface {
 	Validate() error
 }
 
+// UnaryValidateInterceptor создает серверный унарный интерцептор,
+// который выполняет валидацию входящих запросов.
+// При ошибке валидации возвращается gRPC-ошибка с кодом InvalidArgument,
+// и запрос не передается в обработчик.
 func UnaryValidateInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

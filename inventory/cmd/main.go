@@ -17,6 +17,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/logger"
 	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/validate"
 	inventoryV1 "github.com/voronovsg/rocket-factory/inventory/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
@@ -341,7 +342,10 @@ func main() {
 	}
 
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(validate.UnaryValidateInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			validate.UnaryValidateInterceptor(),
+			logger.UnaryLoggerInterceptor(),
+		),
 	)
 	reflection.Register(s)
 
