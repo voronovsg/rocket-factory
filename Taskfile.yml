@@ -6,12 +6,25 @@ vars:
   GOLANGCI_LINT_VERSION: 'v2.11.3'
   GCI_VERSION: 'v0.14.0'
   GOFUMPT_VERSION: 'v0.9.2'
+  BUF_VERSION: '1.66.1'
+  PROTOC_GEN_GO_VERSION: 'v1.36.6'
+  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.1'
+  PROTOC_GEN_GRPC_GATEWAY_VERSION: 'v2.26.3'
+  PROTOC_GEN_VALIDATE_VERSION: 'v1.3.3'
+  PROTOC_GEN_OPENAPIV2_VERSION: 'v2.28.0'
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
   GCI: '{{.BIN_DIR}}/gci'
   GOFUMPT: '{{.BIN_DIR}}/gofumpt'
-  MODULES: assembly inventory order payment platform iam notification
+  BUF: '{{.BIN_DIR}}/buf'
+  PROTOC_GEN_GO: '{{.BIN_DIR}}/protoc-gen-go'
+  PROTOC_GEN_GO_GRPC: '{{.BIN_DIR}}/protoc-gen-go-grpc'
+  PROTOC_GEN_GRPC_GATEWAY: '{{.BIN_DIR}}/protoc-gen-grpc-gateway'
+  PROTOC_GEN_VALIDATE: '{{.BIN_DIR}}/protoc-gen-validate'
+  PROTOC_GEN_OPENAPIV2: '{{.BIN_DIR}}/protoc-gen-openapiv2'
+
+  MODULES: inventory
 
 tasks:
   install-formatters:
@@ -36,7 +49,6 @@ tasks:
     status:
       - test -x {{.GOFUMPT}}
       - test -x {{.GCI}}
-
   format:
     desc: "Форматирует весь проект gofumpt + gci, исключая mocks"
     summary: |
@@ -83,7 +95,6 @@ tasks:
         }
     status:
       - test -x {{.GOLANGCI_LINT}}
-
   lint:
     desc: "Запускает golangci-lint для всех модулей"
     summary: |
@@ -110,3 +121,58 @@ tasks:
           fi
         done
         exit $ERR
+
+
+
+  install-buf:
+    desc: "Устанавливает Buf в каталог bin"
+    cmds:
+      - |
+        [ -f {{.BUF}} ] || {
+          mkdir -p {{.BIN_DIR}} tmp-buf
+          curl -sSL \
+            "https://github.com/bufbuild/buf/releases/download/v{{.BUF_VERSION}}/buf-$(uname -s)-$(uname -m).tar.gz" \
+            | tar -xz -C tmp-buf
+          mv tmp-buf/buf/bin/buf {{.BUF}}
+          rm -rf tmp-buf
+          chmod +x {{.BUF}}
+        }
+
+  proto:install-plugins:
+    desc: "Устанавливает protoc плагины в каталог bin"
+    cmds:
+      - |
+        [ -f {{.PROTOC_GEN_GO}} ] || {
+          echo '📦 Installing protoc-gen-go...'
+          GOBIN={{.BIN_DIR}} go install google.golang.org/protobuf/cmd/protoc-gen-go@{{.PROTOC_GEN_GO_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_GO_GRPC}} ] || {
+          echo '📦 Installing protoc-gen-go-grpc...'
+          GOBIN={{.BIN_DIR}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@{{.PROTOC_GEN_GO_GRPC_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_GRPC_GATEWAY}} ] || {
+          echo '📦 Installing protoc-gen-grpc-gateway...'
+          GOBIN={{.BIN_DIR}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@{{.PROTOC_GEN_GRPC_GATEWAY_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_VALIDATE}} ] || {
+          echo '📦 Installing protoc-gen-validate...'
+          GOBIN={{.BIN_DIR}} go install github.com/envoyproxy/protoc-gen-validate@{{.PROTOC_GEN_VALIDATE_VERSION}}
+        }
+        [ -f {{.PROTOC_GEN_OPENAPIV2}} ] || {
+          echo '📦 Installing protoc-gen-openapiv2...'
+          GOBIN={{.BIN_DIR}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@{{.PROTOC_GEN_OPENAPIV2_VERSION}}
+        }
+
+  proto:lint:
+    deps: [ install-buf, proto:install-plugins ]
+    desc: Проверка .proto-файлов на соответствие стилю
+    dir: shared/proto/
+    cmds:
+      - '{{.BUF}} lint --exclude-path google --exclude-path validate'
+
+  proto:gen:
+    deps: [ proto:lint, proto:install-plugins ]
+    desc: Генерация Go-кода из .proto
+    dir: shared/proto/
+    cmds:
+      - '{{.BUF}} generate --exclude-path google --exclude-path validate'

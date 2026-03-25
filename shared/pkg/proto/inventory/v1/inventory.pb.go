@@ -789,7 +789,7 @@ const file_inventory_v1_inventory_proto_rawDesc = "" +
 	"\rCATEGORY_WING\x10\x042\xe6\x01\n" +
 	"\x10InventoryService\x12f\n" +
 	"\aGetPart\x12\x1c.inventory.v1.GetPartRequest\x1a\x1d.inventory.v1.GetPartResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/GetPart/{uuid}\x12j\n" +
-	"\tListParts\x12\x1e.inventory.v1.ListPartsRequest\x1a\x1f.inventory.v1.ListPartsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/v1/ListPartsBOZMgithub.com/voronovsg/rocket-factory/inventory/proto/inventory/v1;inventory_v1b\x06proto3"
+	"\tListParts\x12\x1e.inventory.v1.ListPartsRequest\x1a\x1f.inventory.v1.ListPartsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/v1/ListPartsBPZNgithub.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1;inventory_v1b\x06proto3"
 
 var (
 	file_inventory_v1_inventory_proto_rawDescOnce sync.Once

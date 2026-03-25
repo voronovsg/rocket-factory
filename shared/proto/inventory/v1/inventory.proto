@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/voronovsg/rocket-factory/inventory/proto/inventory/v1;inventory_v1";
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1;inventory_v1";
 
 // Сервис InventoryService
 service InventoryService {

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"net"
@@ -11,15 +10,13 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/logger"
-	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/validate"
-	inventoryV1 "github.com/voronovsg/rocket-factory/inventory/pkg/proto/inventory/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -27,7 +24,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"sync"
+	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/logger"
+	"github.com/voronovsg/rocket-factory/inventory/internal/interceptor/validate"
+	inventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
 const (
@@ -376,7 +375,7 @@ func main() {
 		err = inventoryV1.RegisterInventoryServiceHandlerFromEndpoint(
 			ctx,
 			mux,
-			fmt.Sprintf(grpcAddr),
+			grpcAddr,
 			opts,
 		)
 		if err != nil {
@@ -384,7 +383,7 @@ func main() {
 			return
 		}
 
-		fileServer := http.FileServer(http.Dir("api"))
+		fileServer := http.FileServer(http.Dir("../shared/api"))
 		httpMux := http.NewServeMux()
 		httpMux.Handle("/api/", mux)
 		httpMux.Handle("/swagger-ui.html", fileServer)
@@ -398,7 +397,7 @@ func main() {
 		}))
 
 		gwServer = &http.Server{
-			Addr:              fmt.Sprintf(httpAddr),
+			Addr:              httpAddr,
 			Handler:           httpMux,
 			ReadHeaderTimeout: 10 * time.Second,
 		}
