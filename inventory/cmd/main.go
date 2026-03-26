@@ -383,7 +383,7 @@ func main() {
 			return
 		}
 
-		fileServer := http.FileServer(http.Dir("../shared/api"))
+		fileServer := http.FileServer(http.Dir("../shared/api/inventory/v1"))
 		httpMux := http.NewServeMux()
 		httpMux.Handle("/api/", mux)
 		httpMux.Handle("/swagger-ui.html", fileServer)

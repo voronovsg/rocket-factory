@@ -22,7 +22,8 @@ plugins:
       - lang=go
   - local: ../../bin/protoc-gen-openapiv2
     out: ../api
+#    strategy: all
     opt:
-      - allow_merge=true
-      - merge_file_name=inventory.json
+#      - allow_merge=true
+#      - merge_file_name=swagger.json
       - json_names_for_fields=false
