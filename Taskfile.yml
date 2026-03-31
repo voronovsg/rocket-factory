@@ -1,5 +1,6 @@
 version: '3'
 
+#silent: true
 # Глобальные переменные проекта
 vars:
   GO_VERSION: '1.26'
@@ -12,6 +13,9 @@ vars:
   PROTOC_GEN_GRPC_GATEWAY_VERSION: 'v2.26.3'
   PROTOC_GEN_VALIDATE_VERSION: 'v1.3.3'
   PROTOC_GEN_OPENAPIV2_VERSION: 'v2.28.0'
+  OGEN_VERSION: 'v1.20.2'
+  YQ_VERSION: 'v4.52.5'
+  GRPCURL_VERSION: 'v1.9.3'
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
@@ -23,8 +27,13 @@ vars:
   PROTOC_GEN_GRPC_GATEWAY: '{{.BIN_DIR}}/protoc-gen-grpc-gateway'
   PROTOC_GEN_VALIDATE: '{{.BIN_DIR}}/protoc-gen-validate'
   PROTOC_GEN_OPENAPIV2: '{{.BIN_DIR}}/protoc-gen-openapiv2'
+  OGEN: '{{.BIN_DIR}}/ogen'
+  YQ: '{{.BIN_DIR}}/yq'
+  GRPCURL: '{{.BIN_DIR}}/grpcurl'
 
-  MODULES: inventory
+  OPEN_API_FILES: '{{.ROOT_DIR}}/shared/api/'
+
+  MODULES: inventory payment order
 
 tasks:
   install-formatters:
@@ -169,10 +178,71 @@ tasks:
     dir: shared/proto/
     cmds:
       - '{{.BUF}} lint --exclude-path google --exclude-path validate'
-
   proto:gen:
     deps: [ proto:lint, proto:install-plugins ]
     desc: Генерация Go-кода из .proto
     dir: shared/proto/
     cmds:
       - '{{.BUF}} generate --exclude-path google --exclude-path validate'
+  yq:install:
+    desc: "Устанавливает yq в bin/ при необходимости"
+    cmds:
+      - |
+        [ -f {{.YQ}} ] || {
+          echo '📦 Installing yq...'
+          GOBIN={{.BIN_DIR}} go install github.com/mikefarah/yq/v4@{{.YQ_VERSION}}
+        }
+  ogen:install:
+    desc: "Скачивает ogen в папку bin"
+    cmds:
+      - |
+        [ -f {{.OGEN}} ] || {
+          mkdir -p {{.BIN_DIR}}
+          GOBIN={{.BIN_DIR}} go install github.com/ogen-go/ogen/cmd/ogen@{{.OGEN_VERSION}}
+        }
+  ogen:gen:
+    deps: [ ogen:install, yq:install ]
+    desc: "Генерация Go-кода из всех OpenAPI-деклараций с x-ogen"
+    cmds:
+      - |
+        find {{.OPEN_API_FILES}} -name '*.yaml' -o -name '*.yml' | while read -r file; do
+          if [ -f "$file" ] && grep -q 'x-ogen:' "$file"; then
+            echo "🚀 Generating from: $file"
+            target=$({{.YQ}} e '."x-ogen".target' "$file")
+            package=$({{.YQ}} e '."x-ogen".package' "$file")
+            echo "📁 Target: $target"
+            echo "📦 Package: $package"
+            {{.OGEN}} \
+              --target "$target" \
+              --package "$package" \
+              --clean \
+              "$file" || exit 1
+          fi
+        done
+  gen:
+    desc: "Генерация всех proto и OpenAPI деклараций"
+    cmds:
+      - task: proto:gen
+      - task: ogen:gen
+  deps:update:
+    desc: "Обновление зависимостей в go.mod во всех модулях"
+    cmds:
+      - |
+        echo "🔄 Обновление зависимостей в go.mod во всех модулях"
+        for mod in {{.MODULES}}; do
+          if [ -d "$mod" ]; then
+            echo "🔄 Обновление зависимостей в $mod"
+            (cd "$mod" && go mod tidy -compat=1.26.1) || exit 1
+          fi
+        done
+
+  grpcurl:install:
+    desc: "Устанавливает grpcurl в каталог bin"
+    cmds:
+      - |
+        [ -f {{.GRPCURL}} ] || {
+          echo '📦 Устанавливаем grpcurl {{.GRPCURL_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/fullstorydev/grpcurl/cmd/grpcurl@{{.GRPCURL_VERSION}}
+        }
+    status:
+      - test -x {{.GRPCURL}}
