@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package payment.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1;payment_v1";
+
+// Сервис PaymentService с методом PayOrder
+service PaymentService {
+  // Обрабатывает оплату заказа и возвращает идентификатор транзакции
+  rpc PayOrder(PayOrderRequest) returns (PayOrderResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/PayOrder"
+      body: "*"
+    };
+  };
+}
+
+// Перечисление способов оплаты
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0; // Неизвестный способ
+  PAYMENT_METHOD_CARD = 1; // Банковская карта
+  PAYMENT_METHOD_SBP = 2; // Система быстрых платежей
+  PAYMENT_METHOD_CREDIT_CARD = 3; // Кредитная карта
+  PAYMENT_METHOD_INVESTOR_MONEY = 4; // Деньги инвестора (внутренний метод)
+}
+
+// Запрос для метода PayOrder
+message PayOrderRequest {
+  string order_uuid = 1 [(validate.rules).string.uuid = true]; // Идентификатор заказа
+  string user_uuid = 2 [(validate.rules).string.uuid = true]; // Идентификатор пользователя, который оплачивает заказ
+  PaymentMethod payment_method = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}]; // Способ оплаты заказа
+}
+
+// Ответ для метода PayOrder
+message PayOrderResponse {
+  string transaction_uuid = 1 [(validate.rules).string.uuid = true]; // Идентификатор транзакции оплаты
+}

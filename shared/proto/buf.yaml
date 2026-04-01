@@ -1,0 +1,12 @@
+version: v2
+lint:
+  use:
+    - STANDARD
+    - COMMENT_ENUM
+    - COMMENT_MESSAGE
+  ignore:
+    - google
+    - validate
+  except:
+    - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE

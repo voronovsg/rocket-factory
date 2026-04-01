@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1;inventory_v1";
+
+// Сервис InventoryService
+service InventoryService {
+  // GetPart Возвращает информацию о детали по её UUID
+  rpc GetPart(GetPartRequest) returns (GetPartResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/GetPart/{uuid}"
+    };
+  };
+
+  // ListParts Получает список деталей с возможностью фильтрации
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/ListParts"
+      body: "*"
+    };
+  };
+}
+
+// Запрос для метода GetPart
+message GetPartRequest {
+  string uuid = 1 [(validate.rules).string.uuid = true]; // Идентификатор запрашиваемой детали
+}
+
+// Ответ для метода GetPart
+message GetPartResponse {
+  Part part = 1 [(validate.rules).message.required = true]; // Информация о найденной детали
+}
+
+// Запрос для метода ListParts
+message ListPartsRequest {
+  PartsFilter filter = 1; // Фильтр для поиска деталей
+}
+
+// Ответ для метода ListParts
+message ListPartsResponse {
+  repeated Part parts = 1; // Список найденных деталей
+}
+
+// Структура, описывающая деталь
+message Part {
+  string uuid = 1 [(validate.rules).string.uuid = true]; // Уникальный идентификатор детали
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 255}]; // Название детали
+  string description = 3 [(validate.rules).string.max_len = 2000]; // Описание детали
+  double price = 4 [(validate.rules).double.gte = 0]; // Цена за единицу
+  int64 stock_quantity = 5 [(validate.rules).int64.gte = 0]; // Количество на складе
+  Category category = 6 [(validate.rules).enum = {defined_only: true, not_in: [0]}]; // Категория
+  Dimensions dimensions = 7 [(validate.rules).message.required = true]; // Размеры детали
+  Manufacturer manufacturer = 8 [(validate.rules).message.required = true]; // Информация о производителе
+  repeated string tags = 9 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 64}}
+  }]; // Теги для быстрого поиска
+  map<string, Value> metadata = 10 [(validate.rules).map.no_sparse = true]; // Гибкие метаданные
+  google.protobuf.Timestamp created_at = 11 [(validate.rules).timestamp.required = true]; // Дата создания
+  google.protobuf.Timestamp updated_at = 12 [(validate.rules).timestamp.required = true]; // Дата обновления
+}
+
+// Категории деталей
+enum Category {
+  CATEGORY_UNSPECIFIED = 0; // Неизвестная категория
+  CATEGORY_ENGINE = 1; // Двигатель
+  CATEGORY_FUEL = 2; // Топливо
+  CATEGORY_PORTHOLE = 3; // Иллюминатор
+  CATEGORY_WING = 4; // Крыло
+}
+
+// Dimensions представляет размеры детали
+message Dimensions {
+  double length = 1 [(validate.rules).double.gt = 0]; // Длина в см
+  double width = 2 [(validate.rules).double.gt = 0]; // Ширина в см
+  double height = 3 [(validate.rules).double.gt = 0]; // Высота в см
+  double weight = 4 [(validate.rules).double.gt = 0]; // Вес в кг
+}
+
+// Структура для хранения информации о производителе детали
+message Manufacturer {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 255}]; // Название производителя
+  string country = 2 [(validate.rules).string = {min_len: 1, max_len: 128}]; // Страна производства
+  string website = 3 [(validate.rules).string = {uri: true, ignore_empty: true}]; // Сайт производителя
+}
+
+// Структура для хранения значения метаданных детали
+message Value {
+  oneof kind {
+    option (validate.required) = true;
+    string string_value = 1; // Строковое значение
+    int64 int64_value = 2; // Целочисленное значение
+    double double_value = 3; // Дробное значение
+    bool bool_value = 4; // Логическое значение
+  }
+}
+
+// Фильтр для поиска деталей
+message PartsFilter {
+  repeated string uuids = 1 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {uuid: true}}
+  }]; // Список UUID'ов деталей
+  repeated string names = 2 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 255}}
+  }]; // Список имён деталей
+  repeated Category categories = 3 [(validate.rules).repeated = {
+    unique: true,
+    items: {enum: {defined_only: true, not_in: [0]}}
+  }]; // Список категорий деталей
+  repeated string manufacturer_countries = 4 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 128}}
+  }]; // Страны производителей
+  repeated string tags = 5 [(validate.rules).repeated = {
+    unique: true,
+    items: {string: {min_len: 1, max_len: 64}}
+  }]; // Теги для поиска
+}
