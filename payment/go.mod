@@ -7,6 +7,7 @@ replace github.com/voronovsg/rocket-factory/shared => ../shared
 require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
+	github.com/pkg/errors v0.9.1
 	github.com/voronovsg/rocket-factory/shared v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.79.3
 )

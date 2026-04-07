@@ -11,44 +11,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/status"
 
+	paymentV1 "github.com/voronovsg/rocket-factory/payment/internal/api/payment/v1"
 	"github.com/voronovsg/rocket-factory/payment/internal/interceptor/validate"
-	paymentV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1"
+	paymentSrv "github.com/voronovsg/rocket-factory/payment/internal/service/payment"
+	genPaymentV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
 const (
 	grpcAddr = "localhost:50052"
 	httpAddr = "localhost:8082"
 )
-
-type PaymentService struct {
-	paymentV1.UnimplementedPaymentServiceServer
-}
-
-// PayOrder обрабатывает команду на оплату и возвращает UUID транзакции
-func (s *PaymentService) PayOrder(_ context.Context, req *paymentV1.PayOrderRequest) (*paymentV1.PayOrderResponse, error) {
-	if err := req.Validate(); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %v\n", err)
-	}
-	log.Printf("Order UUID: %s\nUser UUID: %s\nPayment Method: %s",
-		req.GetOrderUuid(),
-		req.GetUserUuid(),
-		req.GetPaymentMethod().Enum().String())
-
-	transactionUUID := uuid.NewString()
-	log.Printf("Оплата прошла успешно, Transaction UUID: %s", transactionUUID)
-
-	return &paymentV1.PayOrderResponse{
-		TransactionUuid: transactionUUID,
-	}, nil
-}
 
 func main() {
 	lis, err := net.Listen("tcp", grpcAddr)
@@ -62,8 +39,9 @@ func main() {
 	)
 	reflection.Register(s)
 
-	service := &PaymentService{}
-	paymentV1.RegisterPaymentServiceServer(s, service)
+	service := paymentSrv.NewService()
+	api := paymentV1.NewAPI(service)
+	genPaymentV1.RegisterPaymentServiceServer(s, api)
 
 	go func() {
 		log.Printf("🚀 gRPC PaymentService server listening on %s\n", grpcAddr)
@@ -81,7 +59,7 @@ func main() {
 
 		mux := runtime.NewServeMux()
 		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-		err = paymentV1.RegisterPaymentServiceHandlerFromEndpoint(
+		err = genPaymentV1.RegisterPaymentServiceHandlerFromEndpoint(
 			ctx,
 			mux,
 			grpcAddr,
