@@ -109,7 +109,7 @@ message PartsFilter {
   repeated string names = 2 [(validate.rules).repeated = {
     unique: true,
     items: {string: {min_len: 1, max_len: 255}}
-  }]; // Список имён деталей
+  }]; // Список наименований деталей
   repeated Category categories = 3 [(validate.rules).repeated = {
     unique: true,
     items: {enum: {defined_only: true, not_in: [0]}}

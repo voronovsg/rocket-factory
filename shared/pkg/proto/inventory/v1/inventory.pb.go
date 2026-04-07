@@ -642,7 +642,7 @@ func (*Value_BoolValue) isValue_Kind() {}
 type PartsFilter struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Uuids                 []string               `protobuf:"bytes,1,rep,name=uuids,proto3" json:"uuids,omitempty"`                                                              // Список UUID'ов деталей
-	Names                 []string               `protobuf:"bytes,2,rep,name=names,proto3" json:"names,omitempty"`                                                              // Список имён деталей
+	Names                 []string               `protobuf:"bytes,2,rep,name=names,proto3" json:"names,omitempty"`                                                              // Список наименований деталей
 	Categories            []Category             `protobuf:"varint,3,rep,packed,name=categories,proto3,enum=inventory.v1.Category" json:"categories,omitempty"`                 // Список категорий деталей
 	ManufacturerCountries []string               `protobuf:"bytes,4,rep,name=manufacturer_countries,json=manufacturerCountries,proto3" json:"manufacturer_countries,omitempty"` // Страны производителей
 	Tags                  []string               `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`                                                                // Теги для поиска

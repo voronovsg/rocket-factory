@@ -281,7 +281,7 @@
           "items": {
             "type": "string"
           },
-          "title": "Список имён деталей"
+          "title": "Список наименований деталей"
         },
         "categories": {
           "type": "array",
