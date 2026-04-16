@@ -291,7 +291,7 @@ tasks:
             continue
           fi
         
-          GOTOOLCHAIN=go{{.GO_VERSION}}+auto go test -x -coverpkg="$TARGET_PKGS" \
+          GOTOOLCHAIN=go{{.GO_VERSION}}+auto go test -coverpkg="$TARGET_PKGS" \
             -coverprofile={{.COVERAGE_DIR}}/$mod.out \
             -covermode=atomic \
             $(echo "$TARGET_PKGS" | tr "," " ") || ERR=1
