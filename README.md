@@ -1,6 +1,6 @@
-# rocket-factory
+# Rocket-factory
 
-Этот репозиторий содержит проект из курса [Микросервисы, как в BigTech 2.0](https://olezhek28.courses/microservices) от [Олега Козырева](http://t.me/olezhek28go).
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/voronovsg/452676b01f3db84c4428abd36a2c469e/raw/coverage.json)
 
 Для того чтобы вызывать команды из Taskfile, необходимо установить Taskfile CLI:
 
