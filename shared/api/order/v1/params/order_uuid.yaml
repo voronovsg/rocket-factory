@@ -5,3 +5,4 @@ description: UUID заказа
 schema:
   type: string
   example: "67e55044-10b1-4922-9e8a-4f0d3c2b822b"
+  format: uuid
