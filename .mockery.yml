@@ -1,0 +1,14 @@
+include-interface-regex: ".*(Service|Client|Repository)"
+dir: '{{.InterfaceDir}}/mocks'
+filename: 'mock_{{.InterfaceName|snakecase}}.go'
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+pkgname: 'mocks'
+
+packages:
+  github.com/voronovsg/rocket-factory/inventory/internal/repository:
+  github.com/voronovsg/rocket-factory/inventory/internal/service:
+  github.com/voronovsg/rocket-factory/order/internal/client/grpc:
+  github.com/voronovsg/rocket-factory/order/internal/repository:
+  github.com/voronovsg/rocket-factory/order/internal/service:
+  github.com/voronovsg/rocket-factory/payment/internal/service:
