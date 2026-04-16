@@ -23,6 +23,7 @@
 /.vscode
 /.cursor
 .DS_Store
+/vendor
 
 /bin
 node_modules
