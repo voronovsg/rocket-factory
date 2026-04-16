@@ -47,4 +47,4 @@ jobs:
       go-version: ${{ needs.extract-vars.outputs.go-version }}
       gist-id: "452676b01f3db84c4428abd36a2c469e"
     secrets:
-      GIST_SECRET: ${{ secrets.GIST_TEST_COVERAGE }}
+      GIST_SECRET: ${{ secrets.GIST_SECRET }}
