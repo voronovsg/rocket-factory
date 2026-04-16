@@ -1,0 +1,35 @@
+package order
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	grpcMocks "github.com/voronovsg/rocket-factory/order/internal/client/grpc/mocks"
+	repoMocks "github.com/voronovsg/rocket-factory/order/internal/repository/mocks"
+)
+
+type ServiceSuite struct {
+	suite.Suite
+	mockOrderRepository *repoMocks.MockOrderRepository
+	mockInventoryClient *grpcMocks.MockInventoryClient
+	mockPaymentClient   *grpcMocks.MockPaymentClient
+	service             *service
+	ctx                 context.Context //nolint:containedctx
+}
+
+func (s *ServiceSuite) SetupTest() {
+	s.mockOrderRepository = repoMocks.NewMockOrderRepository(s.T())
+	s.mockInventoryClient = grpcMocks.NewMockInventoryClient(s.T())
+	s.mockPaymentClient = grpcMocks.NewMockPaymentClient(s.T())
+	s.service = NewService(s.mockOrderRepository, s.mockInventoryClient, s.mockPaymentClient)
+	s.ctx = context.Background()
+}
+
+func (s *ServiceSuite) TearDownTest() {
+}
+
+func TestServiceIntegration(t *testing.T) {
+	suite.Run(t, new(ServiceSuite))
+}

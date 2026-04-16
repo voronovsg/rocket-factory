@@ -5,9 +5,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/samber/lo"
-
 	"github.com/voronovsg/rocket-factory/order/internal/model"
+	"github.com/voronovsg/rocket-factory/shared/pkg/ptr"
 )
 
 func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string) (string, error) {
@@ -30,9 +29,9 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 	}
 
 	err = s.orderRepository.Update(ctx, orderUUID, model.UpdateOrder{
-		TransactionUUID: lo.ToPtr(transactionUUID),
-		PaymentMethod:   lo.ToPtr(paymentMethod),
-		Status:          lo.ToPtr(model.OrderStatusPaid),
+		TransactionUUID: &transactionUUID,
+		PaymentMethod:   &paymentMethod,
+		Status:          ptr.Of(model.OrderStatusPaid),
 	})
 	if err != nil {
 		return "", err

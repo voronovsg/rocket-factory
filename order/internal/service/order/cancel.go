@@ -4,9 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/samber/lo"
-
 	"github.com/voronovsg/rocket-factory/order/internal/model"
+	"github.com/voronovsg/rocket-factory/shared/pkg/ptr"
 )
 
 func (s *service) CancelOrderByUUID(ctx context.Context, orderUUID string) error {
@@ -20,7 +19,7 @@ func (s *service) CancelOrderByUUID(ctx context.Context, orderUUID string) error
 	}
 
 	err = s.orderRepository.Update(ctx, orderUUID, model.UpdateOrder{
-		Status: lo.ToPtr(model.OrderStatusCancelled),
+		Status: ptr.Of(model.OrderStatusCancelled),
 	})
 	if err != nil {
 		return err
