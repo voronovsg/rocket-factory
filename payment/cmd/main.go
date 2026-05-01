@@ -17,17 +17,21 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	paymentV1 "github.com/voronovsg/rocket-factory/payment/internal/api/payment/v1"
+	"github.com/voronovsg/rocket-factory/payment/internal/config"
 	"github.com/voronovsg/rocket-factory/payment/internal/interceptor/validate"
 	paymentSrv "github.com/voronovsg/rocket-factory/payment/internal/service/payment"
 	genPaymentV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
-const (
-	grpcAddr = "localhost:50052"
-	httpAddr = "localhost:8082"
-)
+const configPath = "deploy/compose/payment/.env"
 
 func main() {
+	err := config.Load(configPath)
+	if err != nil {
+		log.Printf("failed to load config: %v\n", err)
+	}
+	grpcAddr := config.AppConfig().PaymentGRPC.Address()
+	httpAddr := config.AppConfig().PaymentHTTP.Address()
 	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
 		log.Printf("failed to listen: %v\n", err)

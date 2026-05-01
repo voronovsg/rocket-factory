@@ -1,21 +1,32 @@
 package part
 
 import (
-	"sync"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	def "github.com/voronovsg/rocket-factory/order/internal/repository"
-	repoModel "github.com/voronovsg/rocket-factory/order/internal/repository/model"
+)
+
+const (
+	ordersTable                = "orders"
+	ordersFieldUUID            = "uuid"
+	ordersFieldUserUUID        = "user_uuid"
+	ordersFieldPartUuids       = "part_uuids"
+	ordersFieldTotalPrice      = "total_price"
+	ordersFieldTransactionUUID = "transaction_uuid"
+	ordersFieldPaymentMethod   = "payment_method"
+	ordersFieldStatus          = "status"
+	ordersFieldCreatedAt       = "created_at"
+	ordersFieldUpdatedAt       = "updated_at"
 )
 
 var _ def.OrderRepository = (*repository)(nil)
 
 type repository struct {
-	mu     sync.RWMutex
-	orders map[string]repoModel.Order
+	db *pgxpool.Pool
 }
 
-func NewRepository() *repository {
+func NewRepository(pool *pgxpool.Pool) *repository {
 	return &repository{
-		orders: make(map[string]repoModel.Order),
+		db: pool,
 	}
 }

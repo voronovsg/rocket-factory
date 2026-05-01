@@ -13,12 +13,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	orderAPIV1 "github.com/voronovsg/rocket-factory/order/internal/api/order/v1"
 	inventoryClient "github.com/voronovsg/rocket-factory/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/voronovsg/rocket-factory/order/internal/client/grpc/payment/v1"
+	"github.com/voronovsg/rocket-factory/order/internal/config"
+	"github.com/voronovsg/rocket-factory/order/internal/migrator"
 	orderRepo "github.com/voronovsg/rocket-factory/order/internal/repository/order"
 	orderSrv "github.com/voronovsg/rocket-factory/order/internal/service/order"
 	genOrderV1 "github.com/voronovsg/rocket-factory/shared/pkg/openapi/order/v1"
@@ -26,16 +30,16 @@ import (
 	genPaymentV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
-const (
-	httpPort              = ":8080"
-	httpServerReadTimeout = 5 * time.Second
-
-	inventoryServiceAddr = "localhost:50051"
-	paymentServiceAddr   = "localhost:50052"
-)
+const configPath = "deploy/compose/order/.env"
 
 func main() {
-	paymentConn, err := grpc.NewClient(paymentServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	err := config.Load(configPath)
+	if err != nil {
+		log.Printf("failed to load config: %v\n", err)
+	}
+	ctx := context.Background()
+
+	paymentConn, err := grpc.NewClient(config.AppConfig().PaymentGRPC.Address(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Printf("❌ failed to connect to PaymentServer: %v\n", err)
 		return
@@ -46,7 +50,7 @@ func main() {
 		}
 	}()
 
-	inventoryConn, err := grpc.NewClient(inventoryServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	inventoryConn, err := grpc.NewClient(config.AppConfig().InventoryGRPC.Address(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Printf("❌ failed to connect to InventoryServer: %v\n", err)
 		return
@@ -63,7 +67,26 @@ func main() {
 	inventoryV1Client := inventoryClient.NewClient(genInventoryV1Client)
 	paymentV1Client := paymentClient.NewClient(genPaymentV1Client)
 
-	orderRepository := orderRepo.NewRepository()
+	poolConf, err := pgxpool.ParseConfig(config.AppConfig().Postgres.URI())
+	if err != nil {
+		log.Printf("failed to parse db config: %v\n", err)
+		return
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, poolConf)
+	if err != nil {
+		log.Printf("failed to create pool: %v\n", err)
+		return
+	}
+	defer pool.Close()
+
+	migrationRunner := migrator.New(stdlib.OpenDB(*poolConf.ConnConfig), config.AppConfig().Postgres.MigrationDir())
+	err = migrationRunner.Up()
+	if err != nil {
+		log.Printf("failed to run migrations: %v\n", err)
+		return
+	}
+
+	orderRepository := orderRepo.NewRepository(pool)
 	orderService := orderSrv.NewService(orderRepository, inventoryV1Client, paymentV1Client)
 
 	r := chi.NewRouter()
@@ -82,8 +105,8 @@ func main() {
 	r.Mount("/", handler)
 
 	server := &http.Server{
-		ReadTimeout: httpServerReadTimeout,
-		Addr:        httpPort,
+		ReadTimeout: config.AppConfig().OrderHTTP.ReadTimeout(),
+		Addr:        config.AppConfig().OrderHTTP.Address(),
 		Handler:     r,
 	}
 

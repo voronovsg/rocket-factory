@@ -2,26 +2,57 @@ package part
 
 import (
 	"context"
+	"log"
 	"math"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	repoModel "github.com/voronovsg/rocket-factory/inventory/internal/repository/model"
 )
 
-func (r *repository) InitGenParts(_ context.Context) error {
-	parts := generateParts()
-
-	for _, part := range parts {
-		r.parts[part.Uuid] = part
+func (r *repository) InitGenParts(ctx context.Context) error {
+	count, err := r.collection.EstimatedDocumentCount(ctx)
+	if err != nil {
+		return err
 	}
+	if count > 0 {
+		log.Printf("Parts already exist (%d parts), skipping initialization", count)
+		return nil
+	}
+	r.ensureIndexes(ctx)
+	parts := generateParts()
+	_, err = r.collection.InsertMany(ctx, parts)
+	if err != nil {
+		return err
+	}
+	log.Printf("📦 Generated %d parts for inventory", len(parts))
 
 	return nil
 }
 
-func generateParts() []repoModel.Part {
+func (r *repository) ensureIndexes(ctx context.Context) {
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: partsFieldUUID, Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("idx_uuid"),
+		},
+		{
+			Keys:    bson.D{{Key: partsFieldTags, Value: 1}},
+			Options: options.Index().SetName("idx_tags"),
+		},
+	}
+	_, err := r.collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func generateParts() []interface{} {
 	names := []string{
 		"Main Engine",
 		"Reserve Engine",
@@ -48,7 +79,7 @@ func generateParts() []repoModel.Part {
 		"Stabilization fin",
 	}
 
-	var parts []repoModel.Part
+	var parts []interface{}
 	for i := 0; i < gofakeit.Number(1, 50); i++ {
 		idx := gofakeit.Number(0, len(names)-1)
 		parts = append(parts, repoModel.Part{

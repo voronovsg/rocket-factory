@@ -1,0 +1,24 @@
+services:
+  postgres-orders:
+    image: postgres:18-alpine3.23
+    container_name: postgres-orders
+    env_file:
+      - .env
+    volumes:
+      - postgres_orders_data:/var/lib/postgresql
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_PORT}" # порт хоста: порт контейнера
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U orders_user -d orders" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - microservices-net
+volumes:
+  postgres_orders_data:
+networks:
+  microservices-net:
+    external: true # Подключаемся к существующей сети
+
