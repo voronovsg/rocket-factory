@@ -6,8 +6,10 @@ replace github.com/voronovsg/rocket-factory/shared => ../shared
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.14.1
+	github.com/caarlos0/env/v11 v11.4.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
+	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
 	github.com/voronovsg/rocket-factory/shared v0.0.0-00010101000000-000000000000
