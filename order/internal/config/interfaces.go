@@ -19,3 +19,8 @@ type PostgresConfig interface {
 	URI() string
 	MigrationDir() string
 }
+
+type LoggerConfig interface {
+	Level() string
+	AsJson() bool
+}
