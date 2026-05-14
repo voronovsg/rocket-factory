@@ -4,7 +4,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 
 	"github.com/voronovsg/rocket-factory/order/internal/model"
-	"github.com/voronovsg/rocket-factory/shared/pkg/ptr"
+	"github.com/voronovsg/rocket-factory/platform/pkg/ptr"
 )
 
 func (s *ServiceSuite) TestPaySuccess() {

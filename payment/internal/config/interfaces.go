@@ -7,3 +7,8 @@ type PaymentGRPCConfig interface {
 type PaymentHTTPConfig interface {
 	Address() string
 }
+
+type LoggerConfig interface {
+	Level() string
+	AsJson() bool
+}

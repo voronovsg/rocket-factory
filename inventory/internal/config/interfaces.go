@@ -12,3 +12,8 @@ type MongoConfig interface {
 	URI() string
 	DBName() string
 }
+
+type LoggerConfig interface {
+	Level() string
+	AsJson() bool
+}
