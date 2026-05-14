@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/voronovsg/rocket-factory/order/internal/model"
-	"github.com/voronovsg/rocket-factory/shared/pkg/ptr"
+	"github.com/voronovsg/rocket-factory/platform/pkg/ptr"
 )
 
 func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string) (string, error) {
