@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package events.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/events/v1;events_v1";
+
+// OrderPaid Заказ оплачен
+message OrderPaid {
+  string order_uuid = 1; // Идентификатор оплаченного заказа
+  string user_uuid = 2; // Идентификатор пользователя
+  string payment_method = 3; // Способ оплаты
+  string transaction_uuid = 4; // Идентификатор транзакции, сгенерированный в результате оплаты
+  google.protobuf.Timestamp paid_at = 5; // Дата и время оплаты
+}
+
+// OrderAssembled Заказ готов
+message OrderAssembled {
+  string order_uuid = 1; // Идентификатор оплаченного заказа
+  string user_uuid = 2; // Идентификатор пользователя
+  int64 build_time_sec = 3; // Время (в секундах), потраченное изготовление заказа
+}
