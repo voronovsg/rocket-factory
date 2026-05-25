@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/go-faster/errors"
+	"go.uber.org/zap"
 
 	"github.com/voronovsg/rocket-factory/order/internal/api/health"
 	"github.com/voronovsg/rocket-factory/order/internal/config"
@@ -34,7 +36,34 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	return a.runHTTPServer(ctx)
+	errCh := make(chan error, 2)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		if err := a.runConsumer(ctx); err != nil {
+			errCh <- errors.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := a.runHTTPServer(ctx); err != nil {
+			errCh <- errors.Errorf("http server crashed: %v", err)
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		logger.Info(ctx, "Shutdown signal received")
+	case err := <-errCh:
+		logger.Error(ctx, "Component crashed, shutting down", zap.Error(err))
+		cancel()
+		<-ctx.Done()
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) initDeps(ctx context.Context) error {
@@ -103,6 +132,17 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 	logger.Info(ctx, fmt.Sprintf("🚀 OrderService HTTP API запущен на %s", config.AppConfig().OrderHTTP.Address()))
 
 	err := a.httpServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runConsumer(ctx context.Context) error {
+	logger.Info(ctx, "🚀 OrderService Kafka consumer running")
+
+	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
 	if err != nil {
 		return err
 	}

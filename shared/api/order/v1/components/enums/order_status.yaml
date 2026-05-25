@@ -3,4 +3,5 @@ enum:
   - PENDING_PAYMENT
   - PAID
   - CANCELLED
+  - ASSEMBLED
 description: Текущий статус заказа

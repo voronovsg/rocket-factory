@@ -3,6 +3,7 @@ package model
 import "time"
 
 const (
+	OrderStatusAssembled      = "ASSEMBLED"
 	OrderStatusPendingPayment = "PENDING_PAYMENT"
 	OrderStatusPaid           = "PAID"
 	OrderStatusCancelled      = "CANCELLED"
