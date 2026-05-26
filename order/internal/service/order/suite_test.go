@@ -9,6 +9,7 @@ import (
 	grpcMocks "github.com/voronovsg/rocket-factory/order/internal/client/grpc/mocks"
 	repoMocks "github.com/voronovsg/rocket-factory/order/internal/repository/mocks"
 	serviceMocks "github.com/voronovsg/rocket-factory/order/internal/service/mocks"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 type ServiceSuite struct {
@@ -22,6 +23,7 @@ type ServiceSuite struct {
 }
 
 func (s *ServiceSuite) SetupTest() {
+	logger.SetNopLogger()
 	s.mockOrderRepository = repoMocks.NewMockOrderRepository(s.T())
 	s.mockInventoryClient = grpcMocks.NewMockInventoryClient(s.T())
 	s.mockPaymentClient = grpcMocks.NewMockPaymentClient(s.T())

@@ -6,8 +6,10 @@ structname: '{{.Mock}}{{.InterfaceName}}'
 pkgname: 'mocks'
 
 packages:
+  github.com/voronovsg/rocket-factory/assembly/internal/service:
   github.com/voronovsg/rocket-factory/inventory/internal/repository:
   github.com/voronovsg/rocket-factory/inventory/internal/service:
+  github.com/voronovsg/rocket-factory/notification/internal/service:
   github.com/voronovsg/rocket-factory/order/internal/client/grpc:
   github.com/voronovsg/rocket-factory/order/internal/repository:
   github.com/voronovsg/rocket-factory/order/internal/service:
