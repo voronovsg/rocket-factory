@@ -23,6 +23,8 @@ COPY shared ./shared
 COPY order ./order
 COPY inventory ./inventory
 COPY payment ./payment
+COPY assembly ./assembly
+COPY notification ./notification
 
 ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.49/grpc_health_probe-linux-amd64 ./grpc-health-probe
 
