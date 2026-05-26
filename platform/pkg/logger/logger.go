@@ -28,6 +28,12 @@ type logger struct {
 	zapLogger *zap.Logger
 }
 
+func SetNopLogger() {
+	globalLogger = &logger{
+		zapLogger: zap.NewNop(),
+	}
+}
+
 func Init(levelStr string, asJSON bool) error {
 	initOnce.Do(func() {
 		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(levelStr))

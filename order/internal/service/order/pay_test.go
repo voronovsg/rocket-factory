@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/voronovsg/rocket-factory/order/internal/model"
 	"github.com/voronovsg/rocket-factory/platform/pkg/ptr"
@@ -29,6 +30,13 @@ func (s *ServiceSuite) TestPaySuccess() {
 		PaymentMethod:   &paymentMethod,
 		Status:          ptr.Of(model.OrderStatusPaid),
 	}).Return(nil).Once()
+	s.mockOrderProducerService.On("ProduceOrderPaid", s.ctx, mock.MatchedBy(func(event model.OrderPaidEvent) bool {
+		s.Require().Equal(orderUUID, event.OrderUUID)
+		s.Require().Equal(userUUID, event.UserUUID)
+		s.Require().Equal(transactionUUID, event.TransactionUUID)
+
+		return true
+	})).Return(nil).Once()
 
 	res, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
 	s.Require().NoError(err)

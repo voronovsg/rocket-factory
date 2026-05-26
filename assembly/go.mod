@@ -10,6 +10,7 @@ require (
 	github.com/IBM/sarama v1.48.2
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/joho/godotenv v1.5.1
+	github.com/stretchr/testify v1.11.1
 	github.com/voronovsg/rocket-factory/platform v0.0.0-00010101000000-000000000000
 	github.com/voronovsg/rocket-factory/shared v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.28.0
@@ -29,9 +30,13 @@ require (
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.26 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
