@@ -15,6 +15,7 @@ type config struct {
 	InventoryHTTP InventoryHTTPConfig
 	Mongo         MongoConfig
 	Logger        LoggerConfig
+	IAMGRPC       IAMGRPCConfig
 }
 
 func Load(path ...string) error {
@@ -29,6 +30,11 @@ func Load(path ...string) error {
 	}
 
 	inventoryGRPCCfg, err := env.NewInventoryGRPCConfig()
+	if err != nil {
+		return err
+	}
+
+	iamGRPCCfg, err := env.NewIAMGRPCConfig()
 	if err != nil {
 		return err
 	}
@@ -48,6 +54,7 @@ func Load(path ...string) error {
 		InventoryHTTP: inventoryHTTPCfg,
 		Mongo:         mongoCfg,
 		Logger:        loggerCfg,
+		IAMGRPC:       iamGRPCCfg,
 	}
 
 	return nil

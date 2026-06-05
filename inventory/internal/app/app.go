@@ -20,6 +20,7 @@ import (
 	"github.com/voronovsg/rocket-factory/platform/pkg/closer"
 	"github.com/voronovsg/rocket-factory/platform/pkg/grpc/health"
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
+	grpcMiddleware "github.com/voronovsg/rocket-factory/platform/pkg/middleware/grpc"
 	"github.com/voronovsg/rocket-factory/platform/pkg/testcontainers/path"
 	inventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 )
@@ -129,7 +130,10 @@ func (a *App) initListener(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
+	authInterceptor := grpcMiddleware.NewAuthInterceptor(a.diContainer.GeneratedIAMClient())
+	a.grpcServer = grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+		grpc.UnaryInterceptor(authInterceptor.Unary()))
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()
 		return nil

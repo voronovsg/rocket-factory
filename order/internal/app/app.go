@@ -16,6 +16,7 @@ import (
 	"github.com/voronovsg/rocket-factory/order/internal/config"
 	"github.com/voronovsg/rocket-factory/platform/pkg/closer"
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
+	httpMiddleware "github.com/voronovsg/rocket-factory/platform/pkg/middleware/http"
 	generatedOrderV1 "github.com/voronovsg/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
@@ -109,11 +110,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Get("/health", health.Handler)
+	authMiddleware := httpMiddleware.NewAuthMiddleware(a.diContainer.GeneratedIAMClient())
 	handler, err := generatedOrderV1.NewServer(a.diContainer.OrderV1API(ctx))
 	if err != nil {
 		return err
 	}
-	r.Mount("/", handler)
+	r.Mount("/", authMiddleware.Handle(handler))
 
 	a.httpServer = &http.Server{
 		ReadTimeout: config.AppConfig().OrderHTTP.ReadTimeout(),

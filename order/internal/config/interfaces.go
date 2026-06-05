@@ -19,6 +19,10 @@ type PaymentGRPCConfig interface {
 	Address() string
 }
 
+type IAMGRPCConfig interface {
+	Address() string
+}
+
 type PostgresConfig interface {
 	URI() string
 	MigrationDir() string
