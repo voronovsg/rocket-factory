@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/common/v1;common_v1";
+
+// Методы уведомления пользователя
+message NotificationMethod {
+  string provider_name = 1; // Название провайдера
+  string target = 2;        // Цель уведомления: email, ID чата, токен устройства и т.д.
+}
+
+// Базовая информация о пользователе
+message UserInfo {
+  string login = 1; // Логин пользователя
+  string email = 2; // Email пользователя
+  repeated NotificationMethod notification_methods = 3; // Методы уведомления
+}
+
+// Полная информация о пользователе
+message User {
+  string uuid = 1; // Уникальный идентификатор пользователя
+  UserInfo info = 2; // Основная информация
+  google.protobuf.Timestamp created_at = 3; // Дата создания пользователя
+  google.protobuf.Timestamp updated_at = 4; // Дата последнего обновления пользователя
+}

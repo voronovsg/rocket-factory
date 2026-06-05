@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "common/v1/session.proto";
+import "common/v1/user.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/auth/v1;auth_v1";
+
+// Сервис AuthService с методами Login и Whoami
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse); // Вход в систему
+  rpc Whoami(WhoamiRequest) returns (WhoamiResponse); // Получение текущего пользователя по сессии
+}
+
+// Запрос для метода Login
+message LoginRequest {
+  string login = 1 ;  // Логин
+  string password = 2;   // Пароль
+}
+
+// Ответ для метода Login
+message LoginResponse {
+  string session_uuid = 1; // UUID сессии
+}
+
+// Запрос для метода Whoami
+message WhoamiRequest {
+  string session_uuid = 1; // UUID сессии
+}
+
+// Ответ для метода Whoami
+message WhoamiResponse {
+  common.v1.Session session = 1; // Информация о текущей сессии
+  common.v1.User user = 2; // Информация о пользователе, которому принадлежит сессия
+}

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "common/v1/user.proto";
+
+option go_package = "github.com/voronovsg/rocket-factory/shared/pkg/proto/user/v1;user_v1";
+
+// Сервис управления пользователями
+service UserService {
+  rpc Register(RegisterRequest) returns (RegisterResponse); // Регистрация нового пользователя
+  rpc GetUser(GetUserRequest) returns (GetUserResponse); // Получение пользователя по UUID
+}
+
+// Данные пользователя для регистрации
+message UserRegistrationInfo {
+  common.v1.UserInfo info = 1; // Основная информация о пользователе
+  string password = 2 ; // Пароль
+}
+
+// Запрос на регистрацию
+message RegisterRequest {
+  UserRegistrationInfo info = 1; // Полные данные для регистрации
+}
+
+// Ответ на регистрацию
+message RegisterResponse {
+  string user_uuid = 1; // Идентификатор созданного пользователя
+}
+
+// Запрос на получение пользователя
+message GetUserRequest {
+  string user_uuid = 1; // Идентификатор пользователя
+}
+
+// Ответ с данными пользователя
+message GetUserResponse {
+  common.v1.User user = 1; // Пользователь
+}
