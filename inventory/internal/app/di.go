@@ -7,20 +7,28 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	inventoryV1Impl "github.com/voronovsg/rocket-factory/inventory/internal/api/inventory/v1"
+	grpcClient "github.com/voronovsg/rocket-factory/inventory/internal/client/grpc"
+	iamV1 "github.com/voronovsg/rocket-factory/inventory/internal/client/grpc/iam/v1"
 	"github.com/voronovsg/rocket-factory/inventory/internal/config"
 	"github.com/voronovsg/rocket-factory/inventory/internal/repository"
 	partRepository "github.com/voronovsg/rocket-factory/inventory/internal/repository/part"
 	"github.com/voronovsg/rocket-factory/inventory/internal/service"
 	partService "github.com/voronovsg/rocket-factory/inventory/internal/service/part"
 	"github.com/voronovsg/rocket-factory/platform/pkg/closer"
+	authV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/auth/v1"
 	inventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
 type diContainer struct {
-	inventoryV1API inventoryV1.InventoryServiceServer
-	partService    service.PartService
+	inventoryV1API     inventoryV1.InventoryServiceServer
+	partService        service.PartService
+	iamClient          grpcClient.IAMClient
+	generatedIAMClient authV1.AuthServiceClient
+
 	partRepository repository.PartRepository
 
 	mongoDBClient *mongo.Client
@@ -53,6 +61,33 @@ func (d *diContainer) PartRepository(ctx context.Context) repository.PartReposit
 	}
 
 	return d.partRepository
+}
+
+func (d *diContainer) IAMClient() grpcClient.IAMClient {
+	if d.iamClient == nil {
+		d.iamClient = iamV1.NewClient(d.GeneratedIAMClient())
+	}
+
+	return d.iamClient
+}
+
+func (d *diContainer) GeneratedIAMClient() authV1.AuthServiceClient {
+	if d.generatedIAMClient == nil {
+		conn, err := grpc.NewClient(
+			config.AppConfig().IAMGRPC.Address(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			panic(fmt.Sprintf("failed to generated IAM grpc connect: %v\n", err))
+		}
+		closer.AddNamed("generated IAM grpc client", func(ctx context.Context) error {
+			return conn.Close()
+		})
+
+		d.generatedIAMClient = authV1.NewAuthServiceClient(conn)
+	}
+
+	return d.generatedIAMClient
 }
 
 func (d *diContainer) MongoDBClient(ctx context.Context) *mongo.Client {

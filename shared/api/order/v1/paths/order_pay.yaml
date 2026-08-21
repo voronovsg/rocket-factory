@@ -5,6 +5,7 @@ post:
     - Orders
   parameters:
     - $ref: ../params/order_uuid.yaml
+    - $ref: ../headers/session_uuid.yaml
   requestBody:
     required: true
     content:

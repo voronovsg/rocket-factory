@@ -12,10 +12,16 @@ import (
 
 var (
 	rn4AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
+		"POST": "Content-Type,X-Session-Uuid",
+	}
+	rn2AllowedHeaders = map[string]string{
+		"GET": "X-Session-Uuid",
+	}
+	rn3AllowedHeaders = map[string]string{
+		"POST": "X-Session-Uuid",
 	}
 	rn6AllowedHeaders = map[string]string{
-		"POST": "Content-Type",
+		"POST": "Content-Type,X-Session-Uuid",
 	}
 )
 
@@ -108,7 +114,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					default:
 						s.notAllowed(w, r, notAllowedParams{
 							allowedMethods: "GET",
-							allowedHeaders: nil,
+							allowedHeaders: rn2AllowedHeaders,
 							acceptPost:     "",
 							acceptPatch:    "",
 						})
@@ -147,7 +153,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							default:
 								s.notAllowed(w, r, notAllowedParams{
 									allowedMethods: "POST",
-									allowedHeaders: nil,
+									allowedHeaders: rn3AllowedHeaders,
 									acceptPost:     "",
 									acceptPatch:    "",
 								})

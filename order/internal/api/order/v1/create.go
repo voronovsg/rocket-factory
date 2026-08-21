@@ -7,7 +7,7 @@ import (
 	orderV1 "github.com/voronovsg/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
-func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequest) (orderV1.CreateOrderRes, error) {
+func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequest, _ orderV1.CreateOrderParams) (orderV1.CreateOrderRes, error) {
 	order, err := a.orderService.CreateOrder(ctx, converter.CreateOrderToModel(req))
 	if err != nil {
 		return nil, err

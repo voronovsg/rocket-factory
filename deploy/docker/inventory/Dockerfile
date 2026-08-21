@@ -15,6 +15,7 @@ COPY notification/go.mod notification/go.sum ./notification/
 COPY order/go.mod order/go.sum ./order/
 COPY inventory/go.mod inventory/go.sum ./inventory/
 COPY payment/go.mod payment/go.sum ./payment/
+COPY iam/go.mod iam/go.sum ./iam/
 
 RUN go mod download
 
@@ -25,6 +26,7 @@ COPY inventory ./inventory
 COPY payment ./payment
 COPY assembly ./assembly
 COPY notification ./notification
+COPY iam ./iam
 
 ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.49/grpc_health_probe-linux-amd64 ./grpc-health-probe
 

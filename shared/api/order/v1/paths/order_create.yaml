@@ -3,6 +3,8 @@ post:
   operationId: CreateOrder
   tags:
     - Orders
+  parameters:
+    - $ref: ../headers/session_uuid.yaml
   requestBody:
     required: true
     content:

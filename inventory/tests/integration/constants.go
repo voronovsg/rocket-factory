@@ -9,4 +9,7 @@ const (
 
 	// partsCollectionName - имя коллекции MongoDB для деталей
 	partsCollectionName = "parts"
+
+	// testSessionUUID - UUID сессии для аутентификации
+	testSessionUUID = "00000000-0000-0000-0000-000000000099"
 )

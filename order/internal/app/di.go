@@ -13,6 +13,7 @@ import (
 
 	orderV1Impl "github.com/voronovsg/rocket-factory/order/internal/api/order/v1"
 	grpcClient "github.com/voronovsg/rocket-factory/order/internal/client/grpc"
+	iamV1 "github.com/voronovsg/rocket-factory/order/internal/client/grpc/iam/v1"
 	inventoryV1 "github.com/voronovsg/rocket-factory/order/internal/client/grpc/inventory/v1"
 	paymentV1 "github.com/voronovsg/rocket-factory/order/internal/client/grpc/payment/v1"
 	"github.com/voronovsg/rocket-factory/order/internal/config"
@@ -33,6 +34,7 @@ import (
 	"github.com/voronovsg/rocket-factory/platform/pkg/migrator"
 	"github.com/voronovsg/rocket-factory/platform/pkg/migrator/pg"
 	orderV1 "github.com/voronovsg/rocket-factory/shared/pkg/openapi/order/v1"
+	authV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/auth/v1"
 	generatedInventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 	generatedPaymentV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/payment/v1"
 )
@@ -44,8 +46,11 @@ type diContainer struct {
 	orderProducerService service.OrderProducerService
 	orderConsumerService service.ConsumerService
 
-	inventoryClient grpcClient.InventoryClient
-	paymentClient   grpcClient.PaymentClient
+	inventoryClient    grpcClient.InventoryClient
+	paymentClient      grpcClient.PaymentClient
+	iamClient          grpcClient.IAMClient
+	generatedIAMClient authV1.AuthServiceClient
+
 	migrationRunner migrator.Migrator
 
 	pgPool      *pgxpool.Pool
@@ -281,4 +286,31 @@ func (d *diContainer) OrderPaidProducer() wrapKafka.Producer {
 	}
 
 	return d.orderPaidProducer
+}
+
+func (d *diContainer) IAMClient() grpcClient.IAMClient {
+	if d.iamClient == nil {
+		d.iamClient = iamV1.NewClient(d.GeneratedIAMClient())
+	}
+
+	return d.iamClient
+}
+
+func (d *diContainer) GeneratedIAMClient() authV1.AuthServiceClient {
+	if d.generatedIAMClient == nil {
+		conn, err := grpc.NewClient(
+			config.AppConfig().IAMGRPC.Address(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			panic(fmt.Sprintf("failed to generated IAM grpc connect: %v\n", err))
+		}
+		closer.AddNamed("generated IAM grpc client", func(ctx context.Context) error {
+			return conn.Close()
+		})
+
+		d.generatedIAMClient = authV1.NewAuthServiceClient(conn)
+	}
+
+	return d.generatedIAMClient
 }

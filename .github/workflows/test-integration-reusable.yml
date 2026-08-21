@@ -40,8 +40,6 @@ jobs:
         uses: arduino/setup-task@v2.0.0
 
       - name: 📄 Генерация .env файлов
-        env:
-          SERVICES: "inventory,order,payment"
         run: |
           # Генерируем все .env файлы для сервисов
           echo "Генерация .env файлов для всех сервисов..."

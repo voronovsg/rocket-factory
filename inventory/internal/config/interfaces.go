@@ -17,3 +17,7 @@ type LoggerConfig interface {
 	Level() string
 	AsJson() bool
 }
+
+type IAMGRPCConfig interface {
+	Address() string
+}
