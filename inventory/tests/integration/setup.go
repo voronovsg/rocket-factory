@@ -17,6 +17,7 @@ import (
 	"github.com/voronovsg/rocket-factory/platform/pkg/testcontainers/mongo"
 	"github.com/voronovsg/rocket-factory/platform/pkg/testcontainers/network"
 	"github.com/voronovsg/rocket-factory/platform/pkg/testcontainers/path"
+	"github.com/voronovsg/rocket-factory/platform/pkg/testcontainers/stubiam"
 )
 
 const (
@@ -30,6 +31,8 @@ const (
 	grpcPortKey     = "GRPC_PORT"
 	httpHostKey     = "HTTP_HOST"
 	httpPortKey     = "HTTP_PORT"
+	iamGRPCHostKey  = "IAM_GRPC_HOST"
+	iamGRPCPortKey  = "IAM_GRPC_PORT"
 
 	loggerLevelValue  = "info"
 	loggerAsJsonValue = "true"
@@ -42,6 +45,7 @@ const (
 type TestEnvironment struct {
 	Network *network.Network
 	Mongo   *mongo.Container
+	IAMStub *stubiam.Container
 	App     *app.Container
 }
 
@@ -75,9 +79,20 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 	}
 	logger.Info(ctx, "✅ Контейнер MongoDB успешно запущен")
 
-	// Запускаем контейнер с приложением
 	projectRoot := path.GetProjectRoot()
 
+	iamStubContainer, err := stubiam.NewContainer(ctx,
+		stubiam.WithNetworkName(generatedNetwork.Name()),
+		stubiam.WithLogOutput(os.Stdout),
+		stubiam.WithLogger(logger.Logger()),
+	)
+	if err != nil {
+		cleanupTestEnvironment(ctx, &TestEnvironment{Network: generatedNetwork, Mongo: generatedMongo})
+		logger.Fatal(ctx, "не удалось запустить stub IAM контейнер", zap.Error(err))
+	}
+	logger.Info(ctx, "✅ Stub IAM контейнер успешно запущен")
+
+	// Запускаем контейнер с приложением
 	appEnv := map[string]string{
 		// MongoDB переменные
 		testcontainers.MongoHostKey:     generatedMongo.Config().ContainerName,
@@ -94,6 +109,8 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		grpcPortKey:     inventoryAppPort,
 		httpHostKey:     httpHostValue,
 		httpPortKey:     httpPortValue,
+		iamGRPCHostKey:  iamStubContainer.HostName(),
+		iamGRPCPortKey:  iamStubContainer.Port(),
 	}
 
 	// Создаем настраиваемую стратегию ожидания с увеличенным таймаутом
@@ -111,7 +128,11 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		app.WithLogger(logger.Logger()),
 	)
 	if err != nil {
-		cleanupTestEnvironment(ctx, &TestEnvironment{Network: generatedNetwork, Mongo: generatedMongo})
+		cleanupTestEnvironment(ctx, &TestEnvironment{
+			Network: generatedNetwork,
+			Mongo:   generatedMongo,
+			IAMStub: iamStubContainer,
+		})
 		logger.Fatal(ctx, "не удалось запустить контейнер приложения", zap.Error(err))
 	}
 	logger.Info(ctx, "✅ Контейнер приложения успешно запущен")
@@ -120,6 +141,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 	return &TestEnvironment{
 		Network: generatedNetwork,
 		Mongo:   generatedMongo,
+		IAMStub: iamStubContainer,
 		App:     appContainer,
 	}
 }

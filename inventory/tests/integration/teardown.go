@@ -31,6 +31,14 @@ func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 		}
 	}
 
+	if env.IAMStub != nil {
+		if err := env.IAMStub.Terminate(ctx); err != nil {
+			logger.Error(ctx, "не удалось остановить stub IAM контейнер", zap.Error(err))
+		} else {
+			logger.Info(ctx, "🛑 Stub IAM контейнер остановлен")
+		}
+	}
+
 	if env.Mongo != nil {
 		if err := env.Mongo.Terminate(ctx); err != nil {
 			logger.Error(ctx, "не удалось остановить контейнер MongoDB", zap.Error(err))

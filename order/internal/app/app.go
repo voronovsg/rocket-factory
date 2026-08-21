@@ -105,8 +105,8 @@ func (a *App) initCloser(_ context.Context) error {
 
 func (a *App) initHTTPServer(ctx context.Context) error {
 	r := chi.NewRouter()
-	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Get("/health", health.Handler)

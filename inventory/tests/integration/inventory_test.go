@@ -10,7 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
+	grpcMiddleware "github.com/voronovsg/rocket-factory/platform/pkg/middleware/grpc"
 	inventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
@@ -24,6 +26,7 @@ var _ = Describe("InventoryService", func() {
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(suiteCtx)
+		ctx = metadata.AppendToOutgoingContext(ctx, grpcMiddleware.SessionUUIDMetadataKey, testSessionUUID)
 
 		conn, err := grpc.NewClient(
 			env.App.Address(),
