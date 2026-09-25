@@ -13,7 +13,7 @@ import (
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
-const chatID = 1443445013
+const chatID = 1443449013
 
 //go:embed templates/order_paid_notification.tmpl templates/order_assembled_notification.tmpl
 var templateFS embed.FS

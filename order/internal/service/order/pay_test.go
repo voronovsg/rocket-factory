@@ -30,7 +30,7 @@ func (s *ServiceSuite) TestPaySuccess() {
 		PaymentMethod:   &paymentMethod,
 		Status:          ptr.Of(model.OrderStatusPaid),
 	}).Return(nil).Once()
-	s.mockOrderProducerService.On("ProduceOrderPaid", s.ctx, mock.MatchedBy(func(event model.OrderPaidEvent) bool {
+	s.mockOrderProducerService.On("ProduceOrderPaid", mock.Anything, mock.MatchedBy(func(event model.OrderPaidEvent) bool {
 		s.Require().Equal(orderUUID, event.OrderUUID)
 		s.Require().Equal(userUUID, event.UserUUID)
 		s.Require().Equal(transactionUUID, event.TransactionUUID)
