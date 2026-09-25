@@ -5,6 +5,10 @@ import "github.com/IBM/sarama"
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableOTLP() bool
+	CollectorEndpoint() string
+	ServiceName() string
+	ServiceEnvironment() string
 }
 
 type TelegramBotConfig interface {

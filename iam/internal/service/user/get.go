@@ -18,7 +18,7 @@ func (s *service) Get(ctx context.Context, userUUID string) (model.User, error) 
 
 	user, err := s.userRepository.GetByIdentifier(ctx, model.UserIdentifier{UUID: &userUUID})
 	if err != nil {
-		logger.Error(ctx, "failed to get user", zap.Error(err))
+		logger.Error(ctx, "Failed to get user", zap.String("userUUID", userUUID), zap.Error(err))
 		return model.User{}, err
 	}
 

@@ -2,12 +2,14 @@ package logger
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"path"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 // UnaryLoggerInterceptor создает серверный унарный интерцептор,
@@ -20,15 +22,17 @@ func UnaryLoggerInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		method := path.Base(info.FullMethod)
-		log.Printf("🚀 Started gRPC method %s\n", method)
+		logger.Info(ctx, fmt.Sprintf("🚀 Started gRPC method %s\n", info.FullMethod))
 		startTime := time.Now()
 		resp, err := handler(ctx, req)
 		duration := time.Since(startTime)
 		if err != nil {
 			st, _ := status.FromError(err)
-			log.Printf("❌ Finished gRPC method %s with code %s: %v (took: %v)\n", method, st.Code(), err, duration)
+			logger.Error(ctx,
+				fmt.Sprintf("❌ Finished gRPC method %s with code %s: %v (took: %v)\n", method, st.Code(), err, duration))
 		} else {
-			log.Printf("✅ Finished gRPC method %s successfully (took: %v)\n", method, duration)
+			logger.Info(ctx,
+				fmt.Sprintf("✅ Finished gRPC method %s successfully (took: %v)\n", method, duration))
 		}
 
 		return resp, err

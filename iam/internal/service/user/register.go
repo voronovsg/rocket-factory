@@ -13,7 +13,7 @@ import (
 func (s *service) Register(ctx context.Context, user model.UserRegistrationInfo) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Info.Password), bcrypt.DefaultCost)
 	if err != nil {
-		logger.Error(ctx, "failed to hash password", zap.Error(err))
+		logger.Error(ctx, "Failed to hash password", zap.String("login", user.Info.Login), zap.Error(err))
 		return "", err
 	}
 
@@ -21,9 +21,10 @@ func (s *service) Register(ctx context.Context, user model.UserRegistrationInfo)
 
 	userUUID, err := s.userRepository.Create(ctx, user)
 	if err != nil {
-		logger.Error(ctx, "failed to create user", zap.Error(err))
+		logger.Error(ctx, "Failed to create user", zap.String("login", user.Info.Login), zap.Error(err))
 		return "", err
 	}
 
+	logger.Debug(ctx, "Successfully register user", zap.String("user", userUUID))
 	return userUUID, nil
 }

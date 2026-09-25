@@ -1,10 +1,12 @@
 package converter
 
 import (
-	"log"
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/voronovsg/rocket-factory/order/internal/model"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 	inventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
@@ -75,7 +77,7 @@ func PartMetadataToModel(metadata map[string]*inventoryV1.Value) map[string]any 
 		case *inventoryV1.Value_BoolValue:
 			res[key] = v.BoolValue
 		default:
-			log.Printf("Unknown metadata kind for key %q: %T", key, value.Kind)
+			logger.Error(context.Background(), fmt.Sprintf("⚠️ unknown metadata kind for key %q: %T", key, value.Kind))
 		}
 	}
 

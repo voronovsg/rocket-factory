@@ -18,5 +18,6 @@ func (c *client) ListParts(ctx context.Context, filter model.PartsFilter) ([]mod
 		return nil, err
 	}
 
+	// nolint: contextcheck
 	return clientConv.PartListToModel(parts.Parts), nil
 }

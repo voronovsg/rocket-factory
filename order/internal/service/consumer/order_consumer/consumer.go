@@ -33,7 +33,7 @@ func NewService(
 }
 
 func (s *service) RunConsumer(ctx context.Context) error {
-	logger.Info(ctx, "Starting orderAssembledConsumer")
+	logger.Info(ctx, "🚀 Starting orderAssembledConsumer")
 	err := s.orderAssembledConsumer.Consume(ctx, s.OrderHandler)
 	if err != nil {
 		logger.Error(ctx, "Consumption from topic order.assembled error", zap.Error(err))

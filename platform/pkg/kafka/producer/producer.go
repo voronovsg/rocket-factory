@@ -41,9 +41,7 @@ func (p *producer) Send(ctx context.Context, key, value []byte) error {
 		zap.String("topic", p.topic),
 		zap.Int32("partition", partition),
 		zap.Int64("offset", offset),
-		zap.String("key", string(key)),
-		zap.String("value", string(value)),
-	)
+		zap.String("key", string(key)))
 
 	return nil
 }

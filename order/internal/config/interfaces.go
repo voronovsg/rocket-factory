@@ -13,10 +13,12 @@ type OrderHTTPConfig interface {
 
 type InventoryGRPCConfig interface {
 	Address() string
+	ServiceName() string
 }
 
 type PaymentGRPCConfig interface {
 	Address() string
+	ServiceName() string
 }
 
 type IAMGRPCConfig interface {
@@ -31,6 +33,10 @@ type PostgresConfig interface {
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableOTLP() bool
+	CollectorEndpoint() string
+	ServiceName() string
+	ServiceEnvironment() string
 }
 
 type KafkaConfig interface {
@@ -46,4 +52,16 @@ type OrderAssembledConsumerConfig interface {
 	Topic() string
 	GroupID() string
 	Config() *sarama.Config
+}
+
+type TraceConfig interface {
+	CollectorEndpoint() string
+	ServiceName() string
+	Environment() string
+	ServiceVersion() string
+}
+
+type MetricServerConfig interface {
+	CollectorEndpoint() string
+	CollectorInterval() time.Duration
 }

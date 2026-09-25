@@ -13,19 +13,18 @@ import (
 
 // teardownTestEnvironment — освобождает все ресурсы тестового окружения
 func teardownTestEnvironment(ctx context.Context, env *TestEnvironment) {
-	log := logger.Logger()
-	log.Info(ctx, "🧹 Очистка тестового окружения...")
+	logger.Info(ctx, "🧹 Очистка тестового окружения...")
 
 	cleanupTestEnvironment(ctx, env)
 
-	log.Info(ctx, "✅ Тестовое окружение успешно очищено")
+	logger.Info(ctx, "✅ Тестовое окружение успешно очищено")
 }
 
 // cleanupTestEnvironment — вспомогательная функция для освобождения ресурсов
 func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 	if env.App != nil {
 		if err := env.App.Terminate(ctx); err != nil {
-			logger.Error(ctx, "не удалось остановить контейнер приложения", zap.Error(err))
+			logger.Error(ctx, "⚠️ Не удалось остановить контейнер приложения", zap.Error(err))
 		} else {
 			logger.Info(ctx, "🛑 Контейнер приложения остановлен")
 		}
@@ -33,7 +32,7 @@ func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 
 	if env.IAMStub != nil {
 		if err := env.IAMStub.Terminate(ctx); err != nil {
-			logger.Error(ctx, "не удалось остановить stub IAM контейнер", zap.Error(err))
+			logger.Error(ctx, "⚠️ Не удалось остановить stub IAM контейнер", zap.Error(err))
 		} else {
 			logger.Info(ctx, "🛑 Stub IAM контейнер остановлен")
 		}
@@ -41,7 +40,7 @@ func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 
 	if env.Mongo != nil {
 		if err := env.Mongo.Terminate(ctx); err != nil {
-			logger.Error(ctx, "не удалось остановить контейнер MongoDB", zap.Error(err))
+			logger.Error(ctx, "⚠️ Не удалось остановить контейнер MongoDB", zap.Error(err))
 		} else {
 			logger.Info(ctx, "🛑 Контейнер MongoDB остановлен")
 		}
@@ -49,7 +48,7 @@ func cleanupTestEnvironment(ctx context.Context, env *TestEnvironment) {
 
 	if env.Network != nil {
 		if err := env.Network.Remove(ctx); err != nil {
-			logger.Error(ctx, "не удалось удалить сеть", zap.Error(err))
+			logger.Error(ctx, "⚠️ Не удалось удалить сеть", zap.Error(err))
 		} else {
 			logger.Info(ctx, "🛑 Сеть удалена")
 		}

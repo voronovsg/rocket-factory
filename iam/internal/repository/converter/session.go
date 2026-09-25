@@ -29,7 +29,7 @@ func SessionDataToRedisView(ctx context.Context, data model.SessionData) repoMod
 	if data.User.Info.NotificationMethods != nil {
 		raw, err := json.Marshal(data.User.Info.NotificationMethods)
 		if err != nil {
-			logger.Error(ctx, "ошибка при парсинге notificationMethods", zap.Error(err))
+			logger.Error(ctx, "Failed to marshal notificationMethods", zap.Error(err))
 		}
 
 		userNotificationMethods = string(raw)
@@ -66,7 +66,7 @@ func SessionDataToModel(ctx context.Context, data repoModel.SessionDataRedisView
 	if data.UserNotificationMethods != "" {
 		err := json.Unmarshal([]byte(data.UserNotificationMethods), &notificationMethods)
 		if err != nil {
-			logger.Error(ctx, "ошибка при парсинге notificationMethods", zap.Error(err))
+			logger.Error(ctx, "Failed to unmarshal notificationMethods", zap.Error(err))
 		}
 	}
 
