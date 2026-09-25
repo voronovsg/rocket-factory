@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 

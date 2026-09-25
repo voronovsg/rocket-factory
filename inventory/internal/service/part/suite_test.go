@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 
 	repoMocks "github.com/voronovsg/rocket-factory/inventory/internal/repository/mocks"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 type ServiceSuite struct {
