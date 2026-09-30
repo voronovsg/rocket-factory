@@ -25,21 +25,31 @@ const (
 	inventoryAppPort    = "50051"
 	inventoryDockerfile = "deploy/docker/inventory/Dockerfile"
 
-	loggerLevelKey  = "LOGGER_LEVEL"
-	loggerAsJsonKey = "LOGGER_AS_JSON"
-	grpcHostKey     = "GRPC_HOST"
-	grpcPortKey     = "GRPC_PORT"
-	httpHostKey     = "HTTP_HOST"
-	httpPortKey     = "HTTP_PORT"
-	iamGRPCHostKey  = "IAM_GRPC_HOST"
-	iamGRPCPortKey  = "IAM_GRPC_PORT"
+	loggerLevelKey              = "LOGGER_LEVEL"
+	loggerAsJsonKey             = "LOGGER_AS_JSON"
+	loggerEnableOTLP            = "LOGGER_ENABLE_OTLP"
+	loggerOTELCollectorEndPoint = "LOGGER_OTEL_COLLECTOR_ENDPOINT"
+	loggerServiceName           = "LOGGER_SERVICE_NAME"
+	loggerEnv                   = "LOGGER_ENV"
 
-	loggerLevelValue  = "info"
-	loggerAsJsonValue = "true"
-	grpcHostValue     = "0.0.0.0"
-	httpHostValue     = "0.0.0.0"
-	httpPortValue     = "8081"
-	startupTimeout    = 3 * time.Minute
+	grpcHostKey    = "GRPC_HOST"
+	grpcPortKey    = "GRPC_PORT"
+	httpHostKey    = "HTTP_HOST"
+	httpPortKey    = "HTTP_PORT"
+	iamGRPCHostKey = "IAM_GRPC_HOST"
+	iamGRPCPortKey = "IAM_GRPC_PORT"
+
+	loggerLevelValue                 = "info"
+	loggerAsJsonValue                = "true"
+	loggerEnableOTLPValue            = "false"
+	loggerOTELCollectorEndPointValue = "unused:4317"
+	loggerServiceNameValue           = "inventory-integration-tests"
+	loggerEnvValue                   = "test"
+
+	grpcHostValue  = "0.0.0.0"
+	httpHostValue  = "0.0.0.0"
+	httpPortValue  = "8081"
+	startupTimeout = 3 * time.Minute
 )
 
 type TestEnvironment struct {
@@ -103,14 +113,18 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		testcontainers.MongoAuthDBKey:   generatedMongo.Config().AuthDB,
 
 		// Логгер и GRPC переменные
-		loggerLevelKey:  loggerLevelValue,
-		loggerAsJsonKey: loggerAsJsonValue,
-		grpcHostKey:     grpcHostValue,
-		grpcPortKey:     inventoryAppPort,
-		httpHostKey:     httpHostValue,
-		httpPortKey:     httpPortValue,
-		iamGRPCHostKey:  iamStubContainer.HostName(),
-		iamGRPCPortKey:  iamStubContainer.Port(),
+		loggerLevelKey:              loggerLevelValue,
+		loggerAsJsonKey:             loggerAsJsonValue,
+		loggerEnableOTLP:            loggerEnableOTLPValue,
+		loggerOTELCollectorEndPoint: loggerOTELCollectorEndPointValue,
+		loggerServiceName:           loggerServiceNameValue,
+		loggerEnv:                   loggerEnvValue,
+		grpcHostKey:                 grpcHostValue,
+		grpcPortKey:                 inventoryAppPort,
+		httpHostKey:                 httpHostValue,
+		httpPortKey:                 httpPortValue,
+		iamGRPCHostKey:              iamStubContainer.HostName(),
+		iamGRPCPortKey:              iamStubContainer.Port(),
 	}
 
 	// Создаем настраиваемую стратегию ожидания с увеличенным таймаутом
