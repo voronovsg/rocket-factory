@@ -2,11 +2,13 @@ package validate
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 type validatable interface {
@@ -26,7 +28,7 @@ func UnaryValidateInterceptor() grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 		if v, ok := req.(validatable); ok {
 			if err := v.Validate(); err != nil {
-				log.Printf("validation error: method=%s err=%v", info.FullMethod, err)
+				logger.Error(ctx, fmt.Sprintf("Validation error: method=%s err=%v", info.FullMethod, err))
 				return nil, status.Error(codes.InvalidArgument, "invalid request")
 			}
 		}

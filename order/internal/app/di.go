@@ -33,6 +33,7 @@ import (
 	kafkaMiddleware "github.com/voronovsg/rocket-factory/platform/pkg/middleware/kafka"
 	"github.com/voronovsg/rocket-factory/platform/pkg/migrator"
 	"github.com/voronovsg/rocket-factory/platform/pkg/migrator/pg"
+	"github.com/voronovsg/rocket-factory/platform/pkg/tracing"
 	orderV1 "github.com/voronovsg/rocket-factory/shared/pkg/openapi/order/v1"
 	authV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/auth/v1"
 	generatedInventoryV1 "github.com/voronovsg/rocket-factory/shared/pkg/proto/inventory/v1"
@@ -125,6 +126,7 @@ func (d *diContainer) InventoryClient() grpcClient.InventoryClient {
 		conn, err := grpc.NewClient(
 			config.AppConfig().InventoryGRPC.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor(config.AppConfig().InventoryGRPC.ServiceName())),
 		)
 		if err != nil {
 			panic(fmt.Sprintf("❌ не удалось подключиться к grpc inventoryV1: %v\n", err))
@@ -146,6 +148,7 @@ func (d *diContainer) PaymentClient() grpcClient.PaymentClient {
 		conn, err := grpc.NewClient(
 			config.AppConfig().PaymentGRPC.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor(config.AppConfig().PaymentGRPC.ServiceName())),
 		)
 		if err != nil {
 			panic(fmt.Sprintf("❌ не удалось подключиться к grpc paymentV1: %v\n", err))

@@ -2,13 +2,14 @@ package part
 
 import (
 	"context"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.uber.org/zap"
 
 	"github.com/voronovsg/rocket-factory/inventory/internal/model"
 	repoConv "github.com/voronovsg/rocket-factory/inventory/internal/repository/converter"
 	repoModel "github.com/voronovsg/rocket-factory/inventory/internal/repository/model"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 func (r *repository) List(ctx context.Context, filter model.PartsFilter) ([]model.Part, error) {
@@ -36,7 +37,7 @@ func (r *repository) List(ctx context.Context, filter model.PartsFilter) ([]mode
 	}
 	defer func() {
 		if cerr := cursor.Close(ctx); cerr != nil {
-			log.Printf("failed to close cursor: %v\n", cerr)
+			logger.Error(ctx, "Failed to close cursor", zap.Error(cerr))
 		}
 	}()
 	var parts []repoModel.Part

@@ -11,4 +11,8 @@ type PaymentHTTPConfig interface {
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableOTLP() bool
+	CollectorEndpoint() string
+	ServiceName() string
+	ServiceEnvironment() string
 }

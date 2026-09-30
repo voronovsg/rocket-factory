@@ -7,8 +7,9 @@ import (
 )
 
 type inventoryGRPCEnvConfig struct {
-	Host string `env:"INVENTORY_GRPC_HOST,required"`
-	Port string `env:"INVENTORY_GRPC_PORT,required"`
+	Host        string `env:"INVENTORY_GRPC_HOST,required"`
+	Port        string `env:"INVENTORY_GRPC_PORT,required"`
+	ServiceName string `env:"INVENTORY_GRPC_SERVICE_NAME,required"`
 }
 
 type inventoryGRPCConfig struct {
@@ -26,4 +27,8 @@ func NewInventoryGRPCConfig() (*inventoryGRPCConfig, error) {
 
 func (cfg *inventoryGRPCConfig) Address() string {
 	return net.JoinHostPort(cfg.raw.Host, cfg.raw.Port)
+}
+
+func (cfg *inventoryGRPCConfig) ServiceName() string {
+	return cfg.raw.ServiceName
 }

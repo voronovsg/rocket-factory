@@ -99,10 +99,15 @@ func (a *App) initDI(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(_ context.Context) error {
+func (a *App) initLogger(ctx context.Context) error {
 	return logger.Init(
+		ctx,
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.CollectorEndpoint(),
+		config.AppConfig().Logger.ServiceName(),
+		config.AppConfig().Logger.ServiceEnvironment(),
 	)
 }
 
@@ -208,7 +213,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 }
 
 func (a *App) runHTTPServer(ctx context.Context) error {
-	logger.Info(ctx, fmt.Sprintf("🌐 HTTP server with gRPC-Gateway and Swagger UI listening on %v\n", config.AppConfig().InventoryHTTP.Address()))
+	logger.Info(ctx, fmt.Sprintf("🌐 HTTP server with gRPC-Gateway and Swagger UI listening on %v", config.AppConfig().InventoryHTTP.Address()))
 
 	err := a.httpServer.ListenAndServe()
 	if err != nil {

@@ -116,8 +116,179 @@ services:
     networks:
       - microservices-net
 
+  otel-collector: # Сервис OpenTelemetry Collector для сбора и обработки телеметрии
+    image: otel/opentelemetry-collector-contrib:0.159.0 # Используем официальный образ OpenTelemetry Collector Contrib
+    container_name: otel-collector # Явное имя контейнера
+    command: ["--config=/etc/collector.yaml"] # Указываем путь к файлу конфигурации
+    volumes:
+      - ./otel/collector.yaml:/etc/collector.yaml # Монтируем конфигурацию коллектора
+    ports:
+      - "${OTEL_GRPC_PORT}:4317" # Порт для протокола OTLP gRPC
+      - "${OTEL_HTTP_PORT}:4318" # Порт для протокола OTLP HTTP
+      - "${OTEL_COLLECTOR_METRICS_PORT}:8888" # Prometheus метрики для мониторинга и healthcheck
+    restart: unless-stopped
+    # Автоматически перезапускаем контейнер при сбоях, но не при ручной остановке
+    networks:
+      - microservices-net
+      # Подключаем контейнер к общей сети микросервисов
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:8888/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+      # Проверяем готовность коллектора через Prometheus метрики
+    depends_on:
+      jaeger:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+
+  jaeger: # Сервис Jaeger для распределенной трассировки
+    image: jaegertracing/jaeger:2.20.0
+    container_name: jaeger
+    ports:
+      - "${JAEGER_UI_PORT}:16686" # Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true # Включаем поддержку протокола OpenTelemetry
+      - STORAGE_TYPE=badger # Используем Badger как хранилище данных (встроенная key-value БД)
+      - BADGER_EPHEMERAL=false # Сохраняем данные на диск между перезапусками
+      - BADGER_DIRECTORY_VALUE=/badger/data # Директория для хранения значений (спаны, теги, логи)
+      - BADGER_DIRECTORY_KEY=/badger/key # Директория для хранения индексов (для быстрого поиска)
+    volumes:
+      - jaeger_data:/badger/data # Том для хранения данных трейсов
+      - jaeger_key:/badger/key # Том для хранения индексов
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "localhost:${JAEGER_UI_PORT}" ] # Проверка доступности UI
+      interval: 5s # Интервал проверки
+      timeout: 3s # Таймаут проверки
+      retries: 3 # Количество попыток
+      start_period: 5s # Время ожидания перед началом проверок
+    restart: unless-stopped
+    # Автоматически перезапускаем контейнер при сбоях, но не при ручной остановке
+    networks:
+      - microservices-net
+      # Подключаем контейнер к общей сети микросервисов
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    container_name: elasticsearch
+    ports:
+      - "${ELASTICSEARCH_PORT}:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+      - cluster.name=es-docker-cluster
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${ELASTICSEARCH_PORT}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.5.2
+    container_name: kibana
+    ports:
+      - "${KIBANA_PORT}:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#      - ELASTICSEARCH_USERNAME=kibana_system
+#      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+#      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=
+#      - XPACK_REPORTING_ENCRYPTIONKEY=
+#      - XPACK_SECURITY_ENCRYPTIONKEY=
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${KIBANA_PORT}/api/status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    container_name: prometheus
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus' # Директория для хранения временных рядов (метрик) в персистентном томе
+      - '--web.console.libraries=/etc/prometheus/console_libraries' # Путь к JavaScript библиотекам для веб-интерфейса
+      - '--web.console.templates=/etc/prometheus/consoles' # Путь к шаблонам консоли для веб-интерфейса
+      - '--web.enable-lifecycle' # Включает HTTP API для управления Prometheus (позволяет перезагружать конфигурацию без рестарта через POST запрос на /-/reload)
+      - '--web.enable-remote-write-receiver' # Включает поддержку remote write API для приема метрик от OpenTelemetry Collector
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://localhost:${PROMETHEUS_PORT}/-/healthy" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+  grafana:
+    image: grafana/grafana:13.2
+    container_name: grafana
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin} # Имя пользователя администратора
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin} # Пароль администратора
+      - GF_USERS_ALLOW_SIGN_UP=false # Запрещаем регистрацию новых пользователей
+      - GF_AUTH_ANONYMOUS_ENABLED=true # Разрешаем анонимный доступ для удобства разработки
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer # Роль для анонимных пользователей - только просмотр
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning # Монтируем директорию с настройками для автоматического провижининга
+      - ./grafana/dashboards:/var/lib/grafana/dashboards # Монтируем директорию с дашбордами
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://localhost:${GRAFANA_PORT}/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
 volumes:
   kafka_data:
+  jaeger_data:
+  jaeger_key:
+  elasticsearch_data:
+  kibana_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   microservices-net:

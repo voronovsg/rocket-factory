@@ -13,13 +13,13 @@ import (
 func (s *service) Login(ctx context.Context, login, password string) (string, error) {
 	user, err := s.userRepository.GetByIdentifier(ctx, model.UserIdentifier{Login: &login})
 	if err != nil {
-		logger.Error(ctx, "failed to get user by login", zap.Error(err))
+		logger.Error(ctx, "Failed to get user by login", zap.String("login", login), zap.Error(err))
 		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Info.Password), []byte(password))
 	if err != nil {
-		logger.Error(ctx, "failed to compare password", zap.Error(err))
+		logger.Error(ctx, "Failed to compare password", zap.String("userUUID", user.UUID), zap.Error(err))
 		return "", model.ErrUserLoginOrPasswordInvalid
 	}
 
@@ -29,15 +29,16 @@ func (s *service) Login(ctx context.Context, login, password string) (string, er
 
 	sessionUUID, err := s.sessionRepository.Create(ctx, sessionData, s.sessionConfig.TTL())
 	if err != nil {
-		logger.Error(ctx, "failed to create session", zap.Error(err))
+		logger.Error(ctx, "Failed to create session", zap.String("userUUID", user.UUID), zap.Error(err))
 		return "", err
 	}
 
 	err = s.sessionRepository.AddSessionToUserSet(ctx, user.UUID, sessionUUID)
 	if err != nil {
-		logger.Error(ctx, "failed to add session to user set", zap.Error(err))
+		logger.Error(ctx, "Failed to add session to user set", zap.String("userUUID", user.UUID), zap.Error(err))
 		return "", err
 	}
 
+	logger.Debug(ctx, "Successfully logged in", zap.String("user", user.UUID))
 	return sessionUUID, nil
 }

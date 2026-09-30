@@ -20,6 +20,8 @@ type config struct {
 	Kafka                  KafkaConfig
 	OrderPaidProducer      OrderPaidProducerConfig
 	OrderAssembledConsumer OrderAssembledConsumerConfig
+	Trace                  TraceConfig
+	MetricServer           MetricServerConfig
 }
 
 func Load(path ...string) error {
@@ -73,6 +75,16 @@ func Load(path ...string) error {
 		return err
 	}
 
+	traceCfg, err := env.NewTraceConfig()
+	if err != nil {
+		return err
+	}
+
+	metricServerCfg, err := env.NewMetricServerConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		OrderHTTP:              orderHTTPCfg,
 		InventoryGRPC:          inventoryGRPCCfg,
@@ -83,6 +95,8 @@ func Load(path ...string) error {
 		Kafka:                  kafkaCfg,
 		OrderPaidProducer:      orderPaidProducerCfg,
 		OrderAssembledConsumer: orderAssembledConsumerCfg,
+		Trace:                  traceCfg,
+		MetricServer:           metricServerCfg,
 	}
 
 	return nil

@@ -1,0 +1,9 @@
+scrape_configs:
+  # Задание для сбора метрик самого Prometheus
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+  # Задание для сбора метрик с OpenTelemetry Collector
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8888"]

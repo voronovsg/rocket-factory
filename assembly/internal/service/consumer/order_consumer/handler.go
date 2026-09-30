@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/voronovsg/rocket-factory/assembly/internal/metrics"
 	"github.com/voronovsg/rocket-factory/assembly/internal/model"
 	"github.com/voronovsg/rocket-factory/platform/pkg/kafka/consumer"
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
@@ -16,6 +17,7 @@ func (s *service) OrderHandler(ctx context.Context, msg consumer.Message) error 
 	event, err := s.orderPaidDecoder.Decode(msg.Value)
 	if err != nil {
 		logger.Error(ctx, "Failed to decode OrderPaid", zap.Error(err))
+		metrics.CountAssemblyError(ctx, "decode_error")
 		return err
 	}
 
@@ -30,7 +32,9 @@ func (s *service) OrderHandler(ctx context.Context, msg consumer.Message) error 
 	)
 
 	logger.Info(ctx, "Starting assembly process")
-	buildTimeSec := rand.Intn(10) + 1 //nolint:gosec
+
+	startTime := time.Now()
+	buildTimeSec := rand.Intn(10) + 1 //nolint:gosec // имитация сборки
 	sleepTime := time.Duration(buildTimeSec) * time.Second
 	timer := time.NewTimer(sleepTime)
 	defer timer.Stop()
@@ -40,6 +44,12 @@ func (s *service) OrderHandler(ctx context.Context, msg consumer.Message) error 
 		return ctx.Err()
 	case <-timer.C:
 	}
+
+	assemblyDuration := time.Since(startTime)
+
+	metrics.ObserveAssemblyDuration(ctx, assemblyDuration)
+	metrics.CountAssemblyOrder(ctx)
+
 	logger.Info(ctx, "Assembly process completed")
 
 	err = s.orderProducerService.ProduceOrderAssembled(ctx, model.OrderAssembledEvent{
@@ -48,6 +58,7 @@ func (s *service) OrderHandler(ctx context.Context, msg consumer.Message) error 
 		BuildTimeSec: int64(buildTimeSec),
 	})
 	if err != nil {
+		metrics.CountAssemblyError(ctx, "produce_error")
 		logger.Error(ctx, "Failed to republish message", zap.Error(err))
 	}
 

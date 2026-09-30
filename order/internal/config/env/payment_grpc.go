@@ -7,8 +7,9 @@ import (
 )
 
 type paymentGRPCEnvConfig struct {
-	Host string `env:"PAYMENT_GRPC_HOST,required"`
-	Port string `env:"PAYMENT_GRPC_PORT,required"`
+	Host        string `env:"PAYMENT_GRPC_HOST,required"`
+	Port        string `env:"PAYMENT_GRPC_PORT,required"`
+	ServiceName string `env:"PAYMENT_GRPC_SERVICE_NAME,required"`
 }
 
 type paymentGRPCConfig struct {
@@ -26,4 +27,8 @@ func NewPaymentGRPCConfig() (*paymentGRPCConfig, error) {
 
 func (cfg *paymentGRPCConfig) Address() string {
 	return net.JoinHostPort(cfg.raw.Host, cfg.raw.Port)
+}
+
+func (cfg *paymentGRPCConfig) ServiceName() string {
+	return cfg.raw.ServiceName
 }

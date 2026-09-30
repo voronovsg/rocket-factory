@@ -13,7 +13,7 @@ import (
 	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
-const chatID = 1443445013
+const chatID = 1443449013
 
 //go:embed templates/order_paid_notification.tmpl templates/order_assembled_notification.tmpl
 var templateFS embed.FS
@@ -44,7 +44,9 @@ func (s *service) SendOrderPaidNotification(ctx context.Context, event model.Ord
 		return err
 	}
 
-	logger.Info(ctx, "Telegram message sent to chat", zap.Int("chat_id", chatID), zap.String("message", message))
+	logger.Info(ctx, "Telegram message sent to chat",
+		zap.Int("chat_id", chatID),
+		zap.String("message", message))
 	return nil
 }
 
@@ -59,7 +61,9 @@ func (s *service) SendOrderAssembledNotification(ctx context.Context, event mode
 		return err
 	}
 
-	logger.Info(ctx, "Telegram message sent to chat", zap.Int("chat_id", chatID), zap.String("message", message))
+	logger.Info(ctx, "Telegram message sent to chat",
+		zap.Int("chat_id", chatID),
+		zap.String("message", message))
 	return nil
 }
 

@@ -14,7 +14,7 @@ import (
 func UserRegistrationToRepoModel(ctx context.Context, in model.UserRegistrationInfo) repoModel.UserRegistrationInfo {
 	notificationMethods, err := json.Marshal(in.Info.NotificationMethods)
 	if err != nil {
-		logger.Error(ctx, "failed to marshal notification methods", zap.Error(err))
+		logger.Error(ctx, "Failed to marshal notification methods", zap.Error(err))
 	}
 
 	return repoModel.UserRegistrationInfo{
@@ -29,7 +29,7 @@ func UserToModel(ctx context.Context, user repoModel.User) model.User {
 	var notificationMethods []model.NotificationMethod
 	err := json.Unmarshal(user.NotificationMethods, &notificationMethods)
 	if err != nil {
-		logger.Error(ctx, "failed to unmarshal notification methods", zap.Error(err))
+		logger.Error(ctx, "Failed to unmarshal notification methods", zap.Error(err))
 	}
 
 	return model.User{

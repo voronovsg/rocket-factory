@@ -62,10 +62,15 @@ func (a *App) initDI(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(_ context.Context) error {
+func (a *App) initLogger(ctx context.Context) error {
 	return logger.Init(
+		ctx,
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.CollectorEndpoint(),
+		config.AppConfig().Logger.ServiceName(),
+		config.AppConfig().Logger.ServiceEnvironment(),
 	)
 }
 

@@ -61,8 +61,13 @@ func (a *App) initDI(_ context.Context) error {
 
 func (a *App) initLogger(ctx context.Context) error {
 	return logger.Init(
+		ctx,
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
+		config.AppConfig().Logger.EnableOTLP(),
+		config.AppConfig().Logger.CollectorEndpoint(),
+		config.AppConfig().Logger.ServiceName(),
+		config.AppConfig().Logger.ServiceEnvironment(),
 	)
 }
 
@@ -109,7 +114,7 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func (a *App) runGRPCServer(ctx context.Context) error {
-	logger.Info(ctx, fmt.Sprintf("🚀 gRPC Сервер PaymentService прослушивает %s", config.AppConfig().PaymentGRPC.Address()))
+	logger.Info(ctx, fmt.Sprintf("🚀 gRPC Server PaymentService listening on %s", config.AppConfig().PaymentGRPC.Address()))
 
 	err := a.grpcServer.Serve(a.listener)
 	if err != nil {

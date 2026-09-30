@@ -2,7 +2,7 @@ package part
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"math"
 	"time"
 
@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	repoModel "github.com/voronovsg/rocket-factory/inventory/internal/repository/model"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
 func (r *repository) InitGenParts(ctx context.Context) error {
@@ -21,7 +22,7 @@ func (r *repository) InitGenParts(ctx context.Context) error {
 		return err
 	}
 	if count > 0 {
-		log.Printf("Parts already exist (%d parts), skipping initialization", count)
+		logger.Info(ctx, fmt.Sprintf("Parts already exist (%d parts), skipping initialization", count))
 		return nil
 	}
 	r.ensureIndexes(ctx)
@@ -30,7 +31,7 @@ func (r *repository) InitGenParts(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("📦 Generated %d parts for inventory", len(parts))
+	logger.Info(ctx, fmt.Sprintf("📦 Generated %d parts for inventory", len(parts)))
 
 	return nil
 }

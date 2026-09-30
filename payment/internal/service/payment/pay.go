@@ -2,14 +2,15 @@ package payment
 
 import (
 	"context"
-	"log"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"github.com/voronovsg/rocket-factory/payment/internal/model"
+	"github.com/voronovsg/rocket-factory/platform/pkg/logger"
 )
 
-func (s *service) PayOrder(_ context.Context, orderUUID, userUUID, payMethod string) (string, error) {
+func (s *service) PayOrder(ctx context.Context, orderUUID, userUUID, payMethod string) (string, error) {
 	_, err := uuid.Parse(orderUUID)
 	if err != nil {
 		return "", model.ErrOrderUUIDInvalid
@@ -20,11 +21,11 @@ func (s *service) PayOrder(_ context.Context, orderUUID, userUUID, payMethod str
 	}
 
 	transactionUUID := uuid.NewString()
-	log.Printf("Order UUID: %s\nUser UUID: %s\nPayment Method: %s",
-		orderUUID,
-		userUUID,
-		payMethod)
-	log.Printf("Оплата прошла успешно, Transaction UUID: %s", transactionUUID)
+	logger.Info(ctx, "Payment was successful",
+		zap.String("orderUUID", orderUUID),
+		zap.String("userUUID", userUUID),
+		zap.String("transactionUUID", transactionUUID),
+		zap.String("payMethod", payMethod))
 
 	return transactionUUID, nil
 }
